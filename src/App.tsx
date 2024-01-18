@@ -107,10 +107,10 @@ export default function App() {
   }
 
   return (
-    <body className="bg-primary">
+    <section className="bg-primary">
       <div className="flex justify-around mx-auto items-center text-center max-w-screen-lg h-screen">
         <div>
-          <div className={`w-[550px] h-[550px] scale-w-[${ancho / alto}]`}>
+          <div className={`w-[550px] h-[550px] scale-w-[${alto / ancho}]`}>
             <canvas
               id="canvas"
               width={ancho}
@@ -127,7 +127,7 @@ export default function App() {
             Descargar Imagen
           </Button>
           <Button
-          variant="destructive"
+            variant="destructive"
             className="border"
             onClick={() => {
               handleClear();
@@ -210,6 +210,6 @@ export default function App() {
           </form>
         </div>
       </div>
-    </body>
+    </section>
   );
 }
