@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { read, utils } from "xlsx";
 import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import { BaseDirectory, readDir } from "@tauri-apps/api/fs";
+import { convertFileSrc } from "@tauri-apps/api/tauri";
 
 function handleDownload() {
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -16,7 +19,8 @@ export default function App() {
   const [alto, setAlto] = useState(3780);
   const [padding, setPadding] = useState(37.8);
   const [file, setFile] = useState<File>();
-  //const [images, setImages] = useState<FileList>();
+  const [images, setImages] = useState([]);
+  console.log(images);
 
   const pixelXCm = 37.8;
 
@@ -70,8 +74,6 @@ export default function App() {
 
             // When the image is loaded, calculate dimensions and draw
             img.onload = function () {
-              console.log("holu");
-
               const scale = desiredHeight / img.height;
               const scaledWidth = img.width * scale;
 
@@ -98,6 +100,8 @@ export default function App() {
             // Set the source to trigger the onload event
             //@ts-ignore
             img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
+
+
           }
         });
       };
@@ -106,8 +110,22 @@ export default function App() {
     }
   }
 
+  async function handleFolder() {
+    const imgs = await readDir("images", {
+      dir: BaseDirectory.Desktop,
+      recursive: false,
+    });
+    imgs.forEach(async (entry) => {
+      let ent = {
+        nombre:entry.name,
+        path: convertFileSrc(entry.path)
+      }
+      setImages(old => [...old,ent]); // convertFileSrc() used here
+    });
+  }
+
   return (
-    <section className="bg-primary">
+    <section className="bg-primary text-white">
       <div className="flex justify-around mx-auto items-center text-center max-w-screen-lg h-screen">
         <div>
           <div className={`w-[550px] h-[550px] scale-w-[${alto / ancho}]`}>
@@ -136,7 +154,7 @@ export default function App() {
             Limpiar canvas
           </Button>
         </div>
-        <div className="flex flex-col items-center border h-[550px] w-[300px] self-center text-gray-900">
+        <div className="flex flex-col items-center border h-[550px] w-[300px] self-center text-center">
           <form
             className="mt-8 w-1/2 flex flex-col gap-4"
             onSubmit={handleGenerate}
@@ -144,28 +162,29 @@ export default function App() {
             <label className="text-white" htmlFor="orden">
               Orden de compra
             </label>
-            <input
+            <Input
               type="file"
               id="orden"
               name="orden"
+              className="bg-white"
               //@ts-ignore
               onChange={(event) => setFile(event.target.files[0])}
             />
             <label className="text-white" htmlFor="imageFolder">
               Carpeta De Imagenes
             </label>
-            {/* <input
+            <input
               //@ts-ignore
               webkitdirectory=""
               type="file"
               id="imageFolder"
               name="imageFolder"
-              onChange={(event) => setImages(event.target.files)}
-            /> */}
+              onClick={() => handleFolder()}
+            />
             <label className="text-white" htmlFor="ancho">
               Ancho de plantilla
             </label>
-            <input
+            <Input
               type="number"
               id="ancho"
               name="ancho"
@@ -178,7 +197,7 @@ export default function App() {
             <label className="text-white" htmlFor="alto">
               Altura de plantilla
             </label>
-            <input
+            <Input
               type="number"
               id="alto"
               name="alto"
@@ -191,7 +210,7 @@ export default function App() {
             <label className="text-white" htmlFor="margen">
               Margenes
             </label>
-            <input
+            <Input
               type="number"
               id="margen"
               name="margen"
