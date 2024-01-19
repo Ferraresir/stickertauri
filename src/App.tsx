@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { read, utils } from "xlsx";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { BaseDirectory, readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 
+//DOWNLOAD THE CANVAS IN PNG IMAGE
 function handleDownload() {
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
   const image = canvas.toDataURL();
@@ -19,11 +20,28 @@ export default function App() {
   const [alto, setAlto] = useState(3780);
   const [padding, setPadding] = useState(37.8);
   const [file, setFile] = useState<File>();
-  const [images, setImages] = useState([]);
-  console.log(images);
+  const [images, setImages] = useState<{ nombre: string; path: string }[]>([]);
 
+  //PIXELS POR CM
   const pixelXCm = 37.8;
 
+  //CARGA LAS IMAGENES DESDE EL DIRECTORIO
+  useEffect(() => {
+    readDir("images", {
+      dir: BaseDirectory.Desktop,
+      recursive: false,
+    }).then((imgs) => {
+      imgs.forEach((entry) => {
+        let ent = {
+          nombre: entry.name || "",
+          path: convertFileSrc(entry.path),
+        };
+        setImages((old) => [...old, ent]);
+      });
+    });
+  }, []);
+
+  //LIMPIA EL CANVAS
   async function handleClear() {
     const canvas: HTMLCanvasElement = document.getElementById(
       "canvas"
@@ -33,9 +51,9 @@ export default function App() {
     ctx.clearRect(0, 0, ancho, alto);
   }
 
+  //GENERA EL CANVAS ACOMODODANDO LAS IMAGENES HORIZONTALMENTE HASTA Q NO HAY LUGAR Y BAJA VERTICALMENTE
   async function handleGenerate(event: { preventDefault: () => void }) {
     event.preventDefault();
-    // console.log(images);
 
     //SI CARGA ARCHIVO DE PEDIDO
     if (file) {
@@ -63,9 +81,13 @@ export default function App() {
         //ALTO DE IMAGEN CALCULADO EN PIXELES
         const desiredHeight = 6 * pixelXCm; // 6 cm to pixels (assuming 1 cm = 37.8 pixels)
 
+
+        //START POINT IN CANVAS
         let currentX = 20;
         let currentY = 0;
 
+
+        //LOGICA POR CADA IMAGEN
         data.forEach((d) => {
           //@ts-ignore
           let amount = d["Cantidad (- reembolso)"];
@@ -99,29 +121,20 @@ export default function App() {
 
             // Set the source to trigger the onload event
             //@ts-ignore
-            img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
-
-
+            //img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
+            let im = images.find(
+              (i) =>
+                //@ts-ignore
+                i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
+            );
+            //@ts-ignore
+            img.src = im.path;
           }
         });
       };
     } else {
       alert("Seleccione un archivo de pedido");
     }
-  }
-
-  async function handleFolder() {
-    const imgs = await readDir("images", {
-      dir: BaseDirectory.Desktop,
-      recursive: false,
-    });
-    imgs.forEach(async (entry) => {
-      let ent = {
-        nombre:entry.name,
-        path: convertFileSrc(entry.path)
-      }
-      setImages(old => [...old,ent]); // convertFileSrc() used here
-    });
   }
 
   return (
@@ -170,7 +183,7 @@ export default function App() {
               //@ts-ignore
               onChange={(event) => setFile(event.target.files[0])}
             />
-            <label className="text-white" htmlFor="imageFolder">
+            {/* <label className="text-white" htmlFor="imageFolder">
               Carpeta De Imagenes
             </label>
             <input
@@ -180,7 +193,7 @@ export default function App() {
               id="imageFolder"
               name="imageFolder"
               onClick={() => handleFolder()}
-            />
+            /> */}
             <label className="text-white" htmlFor="ancho">
               Ancho de plantilla
             </label>
