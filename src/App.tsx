@@ -4,6 +4,9 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { BaseDirectory, readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
+import { ModeToggle } from "./components/mode-toggle";
+import { Slider } from "./components/ui/slider";
+import { cn } from "./lib/utils";
 
 //DOWNLOAD THE CANVAS IN PNG IMAGE
 function handleDownload() {
@@ -81,11 +84,9 @@ export default function App() {
         //ALTO DE IMAGEN CALCULADO EN PIXELES
         const desiredHeight = 6 * pixelXCm; // 6 cm to pixels (assuming 1 cm = 37.8 pixels)
 
-
         //START POINT IN CANVAS
         let currentX = 20;
         let currentY = 0;
-
 
         //LOGICA POR CADA IMAGEN
         data.forEach((d) => {
@@ -114,21 +115,21 @@ export default function App() {
                 scaledWidth,
                 desiredHeight
               );
-
               // Update the X position for the next image
               currentX += scaledWidth + padding;
             };
 
             // Set the source to trigger the onload event
             //@ts-ignore
-            //img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
-            let im = images.find(
-              (i) =>
-                //@ts-ignore
-                i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
-            );
-            //@ts-ignore
-            img.src = im.path;
+            img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
+
+            // let im = images.find(
+            //   (i) =>
+            //     //@ts-ignore
+            //     i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
+            // );
+            // //@ts-ignore
+            // img.src = im.path;
           }
         });
       };
@@ -138,19 +139,22 @@ export default function App() {
   }
 
   return (
-    <section className="bg-primary text-white">
+    <section>
+      <div className="absolute right-4 top-4">
+        <ModeToggle />
+      </div>
       <div className="flex justify-around mx-auto items-center text-center max-w-screen-lg h-screen">
         <div>
-          <div className={`w-[550px] h-[550px] scale-w-[${alto / ancho}]`}>
+          <div className={`w-[500px] h-[500px]`}>
             <canvas
               id="canvas"
               width={ancho}
               height={alto}
-              className="w-full h-full bg-blue-950"
+              className="w-full h-full bg-blue-900"
             />
           </div>
           <Button
-            className="border"
+            className="border mt-2"
             onClick={() => {
               handleDownload();
             }}
@@ -167,23 +171,23 @@ export default function App() {
             Limpiar canvas
           </Button>
         </div>
-        <div className="flex flex-col items-center border h-[550px] w-[300px] self-center text-center">
+        <div className="flex flex-col items-center border h-3/4 w-[300px] self-center text-center">
           <form
             className="mt-8 w-1/2 flex flex-col gap-4"
             onSubmit={handleGenerate}
           >
-            <label className="text-white" htmlFor="orden">
+            <label className="" htmlFor="orden">
               Orden de compra
             </label>
             <Input
               type="file"
               id="orden"
               name="orden"
-              className="bg-white"
+              className="cursor-pointer file:dark:text-white"
               //@ts-ignore
               onChange={(event) => setFile(event.target.files[0])}
             />
-            {/* <label className="text-white" htmlFor="imageFolder">
+            {/* <label className="" htmlFor="imageFolder">
               Carpeta De Imagenes
             </label>
             <input
@@ -194,7 +198,7 @@ export default function App() {
               name="imageFolder"
               onClick={() => handleFolder()}
             /> */}
-            <label className="text-white" htmlFor="ancho">
+            <label className="" htmlFor="ancho">
               Ancho de plantilla
             </label>
             <Input
@@ -207,7 +211,7 @@ export default function App() {
                 setAncho(Number(event.target.value) * pixelXCm)
               }
             />
-            <label className="text-white" htmlFor="alto">
+            <label className="" htmlFor="alto">
               Altura de plantilla
             </label>
             <Input
@@ -220,10 +224,10 @@ export default function App() {
                 setAlto(Number(event.target.value) * pixelXCm)
               }
             />
-            <label className="text-white" htmlFor="margen">
-              Margenes
+            <label className="" htmlFor="margen">
+              {`Margenes: ${Math.round((padding / pixelXCm) * 100) / 100} Cm`}
             </label>
-            <Input
+            {/* <Input
               type="number"
               id="margen"
               name="margen"
@@ -232,9 +236,23 @@ export default function App() {
               onChange={(event) =>
                 setPadding(Number(event.target.value) * pixelXCm)
               }
-            />
+            /> */}
+            <div className="flex gap-1">
+              <p>0</p>
+              <Slider
+                defaultValue={[padding / pixelXCm]}
+                max={3}
+                min={0}
+                step={0.1}
+                onValueChange={(event) =>
+                  setPadding(Number(event[0]) * pixelXCm)
+                }
+              />
+              <p>3</p>
+            </div>
             <Button
-              className="border-2 rounded-md p-2 shadow-[inset_3px_-3px_30px_rgba(0,0,0,0.6)] shadow-blue-700"
+              className="shadow-sm border shadow-black"
+              variant="outline"
               type="submit"
             >
               Generar
