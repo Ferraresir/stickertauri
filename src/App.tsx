@@ -8,14 +8,14 @@ import { ModeToggle } from "./components/mode-toggle";
 import { Slider } from "./components/ui/slider";
 
 export default function App() {
-  const [ancho, setAncho] = useState(2777);
-  const [alto, setAlto] = useState(2777);
-  const [padding, setPadding] = useState(13.88);
+  const [ancho, setAncho] = useState(9700);
+  const [alto, setAlto] = useState(9700);
+  const [padding, setPadding] = useState(48.5);
   const [file, setFile] = useState<File>();
   const [images, setImages] = useState<{ nombre: string; path: string }[]>([]);
 
   //PIXELS POR CM
-  const pixelXCm = 27.77;
+  const pixelXCm = 97;
 
   //CARGA LAS IMAGENES DESDE EL DIRECTORIO
   useEffect(() => {
