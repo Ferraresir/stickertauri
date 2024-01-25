@@ -8,14 +8,14 @@ import { ModeToggle } from "./components/mode-toggle";
 import { Slider } from "./components/ui/slider";
 
 export default function App() {
-  const [ancho, setAncho] = useState(9800);
-  const [alto, setAlto] = useState(9800);
-  const [padding, setPadding] = useState(49);
+  const [ancho, setAncho] = useState(9700);
+  const [alto, setAlto] = useState(9700);
+  const [padding, setPadding] = useState(48.5);
   const [file, setFile] = useState<File>();
   const [images, setImages] = useState<{ nombre: string; path: string }[]>([]);
 
   //PIXELS POR CM
-  const pixelXCm = 98;
+  const pixelXCm = 97;
 
   //CARGA LAS IMAGENES DESDE EL DIRECTORIO
   useEffect(() => {
@@ -60,26 +60,10 @@ export default function App() {
     //SI CARGA ARCHIVO DE PEDIDO
     if (file) {
       //GET CANVAS
-      // const canvas: HTMLCanvasElement = document.getElementById(
-      //   "canvas"
-      // ) as HTMLCanvasElement;
-      //const ctx = canvas.getContext("2d");
-
-      const newCanvas = document.createElement("canvas");
-      newCanvas.id = "canvas";
-      newCanvas.className = "h-full w-full";
-      newCanvas.width = ancho;
-      newCanvas.height = alto;
-      const ctx = newCanvas.getContext("2d")!;
-      //Red Border
-      ctx.lineWidth = 50;
-      ctx.strokeStyle = "red";
-      ctx.strokeRect(0, 0, 9800, 9800); //for white background
-
-      //for white background
-      ctx.lineWidth = 50;
-      ctx.strokeStyle = "red";
-      ctx.strokeRect(0, 0, 9800, 9800); //for white background
+      const canvas: HTMLCanvasElement = document.getElementById(
+        "canvas"
+      ) as HTMLCanvasElement;
+      const ctx = canvas.getContext("2d");
 
       //READE EXCEL
       const fileReader = new FileReader();
@@ -100,8 +84,8 @@ export default function App() {
         const desiredHeight = 6 * pixelXCm; // 6 cm to pixels (assuming 1 cm = 37.8 pixels)
 
         //START POINT IN CANVAS
-        let currentX = 100;
-        let currentY = 100;
+        let currentX = 20;
+        let currentY = 0;
 
         //LOGICA POR CADA IMAGEN
         data.forEach((d) => {
@@ -116,9 +100,9 @@ export default function App() {
               const scale = desiredHeight / img.height;
               const scaledWidth = img.width * scale;
 
-              if (currentX + scaledWidth + 100 > newCanvas.width) {
+              if (currentX + scaledWidth + 20 > canvas.width) {
                 // Move to the next row if there's not enough space
-                currentX = 100;
+                currentX = 20;
                 currentY += desiredHeight + padding;
               }
 
@@ -139,19 +123,18 @@ export default function App() {
 
             //PUBLICA
             //@ts-ignore
-            img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
+            //img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
 
             //LOCAL
-            // let im = images.find(
-            //   (i) =>
-            //     //@ts-ignore
-            //     i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
-            // );
-            // //@ts-ignore
-            // img.src = im.path;
+            let im = images.find(
+              (i) =>
+                //@ts-ignore
+                i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
+            );
+            //@ts-ignore
+            img.src = im.path;
           }
         });
-        document.getElementById("canvasContainer")?.appendChild(newCanvas);
       };
     } else {
       alert("Seleccione un archivo de pedido");
@@ -165,13 +148,13 @@ export default function App() {
       </div>
       <div className="flex justify-center gap-32 items-center text-center w-screen h-screen">
         <div className="h-3/4 flex flex-col justify-center">
-          <div id="canvasContainer" className={`h-[550px] w-[550px]`}>
-            {/* <canvas
+          <div className={`h-[100%] w-[100%]`}>
+            <canvas
               id="canvas"
               width={ancho}
               height={alto}
-              className="w-full h-full bg-blue-900"
-            /> */}
+              className="w-full h-full bg-blue-900 overflow-scroll"
+            />
           </div>
           <div className="flex flex-col w-1/2 mt-2 mx-auto gap-2">
             <Button
