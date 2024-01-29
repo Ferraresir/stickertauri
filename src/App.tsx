@@ -13,12 +13,11 @@ export default function App() {
   const [padding, setPadding] = useState(49);
   const [file, setFile] = useState<File>();
   const [images, setImages] = useState<{ nombre: string; path: string }[]>([]);
+  const [canvases, setCanvases] = useState([]);
+  const [currentCanvasIndex, setCurrentCanvasIndex] = useState(0);
 
-  //PIXELS POR CM
-  const pixelXCm = 98;
-
-  //CARGA LAS IMAGENES DESDE EL DIRECTORIO
   useEffect(() => {
+    //CARGA LAS IMAGENES DEL DIRECTORIO
     readDir("images", {
       dir: BaseDirectory.Desktop,
       recursive: false,
@@ -33,54 +32,37 @@ export default function App() {
     });
   }, []);
 
+  //PIXELS POR CM
+  const pixelXCm = 98;
+
   //LIMPIA EL CANVAS
   async function handleClear() {
-    const canvas: HTMLCanvasElement = document.getElementById(
-      "canvas"
-    ) as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d");
-    //@ts-ignore
-    ctx.clearRect(0, 0, ancho, alto);
+    // const canvas: HTMLCanvasElement = document.getElementById(
+    //   "canvas"
+    // ) as HTMLCanvasElement;
+    // const ctx = canvas.getContext("2d");
+    // //@ts-ignore
+    // ctx.clearRect(0, 0, ancho, alto);
+    setCanvases([]);
   }
 
   //DOWNLOAD THE CANVAS IN PNG IMAGE
   function handleDownload() {
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    const image = canvas.toDataURL();
-    const aDownloadLink = document.createElement("a");
-    aDownloadLink.download = "canvas_image.png";
-    aDownloadLink.href = image;
-    aDownloadLink.click();
+    canvases.forEach((canvas) => {
+      const aDownloadLink = document.createElement("a");
+      aDownloadLink.download = "canvas_image.png";
+      aDownloadLink.href = canvas;
+      aDownloadLink.click();
+    });
   }
 
   //GENERA EL CANVAS ACOMODODANDO LAS IMAGENES HORIZONTALMENTE HASTA Q NO HAY LUGAR Y BAJA VERTICALMENTE
   async function handleGenerate(event: { preventDefault: () => void }) {
     event.preventDefault();
+    setCanvases([]);
 
     //SI CARGA ARCHIVO DE PEDIDO
     if (file) {
-      //GET CANVAS
-      // const canvas: HTMLCanvasElement = document.getElementById(
-      //   "canvas"
-      // ) as HTMLCanvasElement;
-      //const ctx = canvas.getContext("2d");
-
-      const newCanvas = document.createElement("canvas");
-      newCanvas.id = "canvas";
-      newCanvas.className = "h-full w-full";
-      newCanvas.width = ancho;
-      newCanvas.height = alto;
-      const ctx = newCanvas.getContext("2d")!;
-      //Red Border
-      ctx.lineWidth = 50;
-      ctx.strokeStyle = "red";
-      ctx.strokeRect(0, 0, 9800, 9800); //for white background
-
-      //for white background
-      ctx.lineWidth = 50;
-      ctx.strokeStyle = "red";
-      ctx.strokeRect(0, 0, 9800, 9800); //for white background
-
       //READE EXCEL
       const fileReader = new FileReader();
       fileReader.readAsArrayBuffer(file);
@@ -98,13 +80,40 @@ export default function App() {
 
         //ALTO DE IMAGEN CALCULADO EN PIXELES
         const desiredHeight = 6 * pixelXCm; // 6 cm to pixels (assuming 1 cm = 37.8 pixels)
-
         //START POINT IN CANVAS
         let currentX = 100;
         let currentY = 100;
 
+        const newCanvas = document.createElement("canvas");
+        newCanvas.id = "canvas";
+        newCanvas.className = "h-full w-full";
+        newCanvas.width = ancho;
+        newCanvas.height = alto;
+        const ctx = newCanvas.getContext("2d")!;
+
+        //Red Border
+        ctx.lineWidth = 50;
+        ctx.strokeStyle = "red";
+        ctx.strokeRect(0, 0, ancho, alto); //for white background
+
+        const groupedData = {};
+
+        // data.forEach((item) => {
+        //   const orden = item["Número de pedido"];
+        //   if (!groupedData[orden]) {
+        //     groupedData[orden] = [];
+        //   }
+        //   groupedData[orden].push(item);
+        // });
+
+        console.log(groupedData);
+
         //LOGICA POR CADA IMAGEN
-        data.forEach((d) => {
+        data.forEach((d, index) => {
+          //@ts-ignore
+          let order = d["Número de pedido"];
+          console.log(order);
+
           //@ts-ignore
           let amount = d["Cantidad (- reembolso)"];
           for (let i = 0; i < amount; i++) {
@@ -120,6 +129,28 @@ export default function App() {
                 // Move to the next row if there's not enough space
                 currentX = 100;
                 currentY += desiredHeight + padding;
+              }
+
+              if (currentY + desiredHeight + 100 > alto) {
+                //@ts-ignore
+                setCanvases((prevArray) => [
+                  ...prevArray,
+                  newCanvas.toDataURL("image/png"),
+                ]);
+                currentX = 100;
+                currentY = 100;
+                ctx.lineWidth = 50;
+                ctx.strokeStyle = "red";
+                ctx.clearRect(0, 0, ancho, alto);
+                ctx.strokeRect(0, 0, ancho, alto);
+              }
+
+              if (index === data.length - 1) {
+                //@ts-ignore
+                setCanvases((prevArray) => [
+                  ...prevArray,
+                  newCanvas.toDataURL("image/png"),
+                ]);
               }
 
               // Draw the scaled image
@@ -139,23 +170,34 @@ export default function App() {
 
             //PUBLICA
             //@ts-ignore
-            img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
+            //img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
 
             //LOCAL
-            // let im = images.find(
-            //   (i) =>
-            //     //@ts-ignore
-            //     i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
-            // );
-            // //@ts-ignore
-            // img.src = im.path;
+            let im = images.find(
+              (i) =>
+                //@ts-ignore
+                i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
+            );
+            //@ts-ignore
+            img.src = im.path;
           }
         });
-        document.getElementById("canvasContainer")?.appendChild(newCanvas);
+        //document.getElementById("canvasContainer")?.appendChild(newCanvas);
       };
     } else {
       alert("Seleccione un archivo de pedido");
     }
+  }
+  function handleNextCanvas() {
+    setCurrentCanvasIndex((prevIndex) =>
+      prevIndex < canvases.length - 1 ? prevIndex + 1 : prevIndex
+    );
+  }
+
+  function handlePrevCanvas() {
+    setCurrentCanvasIndex((prevIndex) =>
+      prevIndex > 0 ? prevIndex - 1 : prevIndex
+    );
   }
 
   return (
@@ -165,13 +207,21 @@ export default function App() {
       </div>
       <div className="flex justify-center gap-32 items-center text-center w-screen h-screen">
         <div className="h-3/4 flex flex-col justify-center">
-          <div id="canvasContainer" className={`h-[550px] w-[550px]`}>
-            {/* <canvas
-              id="canvas"
-              width={ancho}
-              height={alto}
-              className="w-full h-full bg-blue-900"
-            /> */}
+          <div id="canvasContainer" className={`h-[550px] w-[550px] mb-6`}>
+            {canvases.length > 1 ? (
+              <div>
+                <img src={canvases[currentCanvasIndex]} alt="" />
+                <div className="flex items-center justify-center mt-4 relative bottom-2">
+                  <button onClick={handlePrevCanvas}>&lt;</button>
+                  <span>
+                    {currentCanvasIndex + 1} / {canvases.length}
+                  </span>
+                  <button onClick={handleNextCanvas}>&gt;</button>
+                </div>
+              </div>
+            ) : (
+              <img src={canvases[0]} alt="" />
+            )}
           </div>
           <div className="flex flex-col w-1/2 mt-2 mx-auto gap-2">
             <Button

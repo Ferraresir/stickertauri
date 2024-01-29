@@ -40,8 +40,8 @@
       }
     },
     "bundle": {
-      "active": true,
-      "targets": "all",
+      "active": false,
+      "targets": "msi",
       "identifier": "com.tiendadecalcos.dev",
       "icon": [
         "icons/32x32.png",
