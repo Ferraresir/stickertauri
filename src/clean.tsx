@@ -6,16 +6,7 @@ import { BaseDirectory, readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { ModeToggle } from "./components/mode-toggle";
 import { Slider } from "./components/ui/slider";
-
-import {
-  Menubar,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
+import sharp from "sharp";
 
 export default function App() {
   const [ancho, setAncho] = useState(9800);
@@ -116,10 +107,10 @@ export default function App() {
         //   groupedData[orden].push(item);
         // });
 
-        //console.log(groupedData);
+        console.log(groupedData);
 
         //LOGICA POR CADA IMAGEN
-        data.forEach((d, index) => {
+        data.forEach(async (d, index) => {
           //@ts-ignore
           let order = d["Número de pedido"];
           console.log(order);
@@ -180,16 +171,16 @@ export default function App() {
 
             //PUBLICA
             //@ts-ignore
-            img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
+            //img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
 
             //LOCAL
-            // let im = images.find(
-            //   (i) =>
-            //     //@ts-ignore
-            //     i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
-            // );
-            // //@ts-ignore
-            // img.src = im.path;
+            let im = images.find(
+              (i) =>
+                //@ts-ignore
+                i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
+            );
+            //@ts-ignore
+            img.src = im.path;
           }
         });
         //document.getElementById("canvasContainer")?.appendChild(newCanvas);
@@ -212,24 +203,9 @@ export default function App() {
 
   return (
     <section>
-      <Menubar className="px-8">
-        <MenubarMenu>
-          <MenubarTrigger>File</MenubarTrigger>
-          <MenubarContent>
-            <MenubarItem>
-              New Tab <MenubarShortcut>⌘T</MenubarShortcut>
-            </MenubarItem>
-            <MenubarItem>New Window</MenubarItem>
-            <MenubarSeparator />
-            <MenubarItem>Share</MenubarItem>
-            <MenubarSeparator />
-            <MenubarItem>Print</MenubarItem>
-            <MenubarItem>
-              <ModeToggle />
-            </MenubarItem>
-          </MenubarContent>
-        </MenubarMenu>
-      </Menubar>
+      <div className="absolute right-4 top-4">
+        <ModeToggle />
+      </div>
       <div className="flex justify-center gap-32 items-center text-center w-screen h-screen">
         <div className="h-3/4 flex flex-col justify-center">
           <div id="canvasContainer" className={`h-[550px] w-[550px] mb-6`}>
@@ -329,22 +305,10 @@ export default function App() {
             <label className="" htmlFor="margen">
               {`Margenes: ${Math.round((padding / pixelXCm) * 100) / 100} Cm`}
             </label>
-
-            {/* INPUT DE MARGENES MANUAL o SLIDER 
-            <Input
-              type="number"
-              id="margen"
-              name="margen"
-              value={Math.round(padding / pixelXCm)}
-              placeholder="Margenes"
-              onChange={(event) =>
-                setPadding(Number(event.target.value) * pixelXCm)
-              }
-            /> */}
-
             <div className="flex gap-1">
               <p>0</p>
               <Slider
+                id="margen"
                 defaultValue={[padding / pixelXCm]}
                 max={3}
                 min={0}
