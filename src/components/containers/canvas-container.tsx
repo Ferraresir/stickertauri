@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { read, utils } from "xlsx";
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { BaseDirectory, readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
-import { Slider } from "./components/ui/slider";
 
-export default function App() {
+export default function CanvasLayout() {
   const [ancho, setAncho] = useState(9800);
   const [alto, setAlto] = useState(9800);
   const [padding, setPadding] = useState(49);
@@ -30,6 +30,7 @@ export default function App() {
       });
     });
   }, []);
+
 
   //PIXELS POR CM
   const pixelXCm = 98;
@@ -59,6 +60,7 @@ export default function App() {
   async function handleGenerate(event: { preventDefault: () => void }) {
     event.preventDefault();
     setCanvases([]);
+    let canvasContainer = document.getElementById("canvasGenerating")
 
     //SI CARGA ARCHIVO DE PEDIDO
     if (file) {
@@ -111,7 +113,6 @@ export default function App() {
         data.forEach((d, index) => {
           //@ts-ignore
           let order = d["Número de pedido"];
-          console.log(order);
 
           //@ts-ignore
           let amount = d["Cantidad (- reembolso)"];
@@ -134,7 +135,7 @@ export default function App() {
                 //@ts-ignore
                 setCanvases((prevArray) => [
                   ...prevArray,
-                  newCanvas.toDataURL("image/png"),
+                  newCanvas.toDataURL(),
                 ]);
                 currentX = 100;
                 currentY = 100;
@@ -143,12 +144,14 @@ export default function App() {
                 ctx.clearRect(0, 0, ancho, alto);
                 ctx.strokeRect(0, 0, ancho, alto);
               }
-
+              console.log(index);
+              
               if (index === data.length - 1) {
+                
                 //@ts-ignore
                 setCanvases((prevArray) => [
                   ...prevArray,
-                  newCanvas.toDataURL("image/png"),
+                  newCanvas.toDataURL(),
                 ]);
               }
 
@@ -181,7 +184,7 @@ export default function App() {
             // img.src = im.path;
           }
         });
-        //document.getElementById("canvasContainer")?.appendChild(newCanvas);
+        canvasContainer?.appendChild(newCanvas);
       };
     } else {
       alert("Seleccione un archivo de pedido");
@@ -201,12 +204,12 @@ export default function App() {
 
   return (
     <section>
-      <div className="flex justify-center gap-32 items-center text-center w-screen h-screen">
-        <div className="h-3/4 flex flex-col justify-center">
-          <div id="canvasContainer" className={`h-[550px] w-[550px] mb-6`}>
-            {canvases.length > 1 ? (
+      <div className="flex justify-center mt-6 gap-32 items-center text-center w-full h-full">
+        <div className="h-full flex flex-col justify-center">
+          <div id="canvasContainer" className={`h-[400px] w-[400px]`}>
+            {canvases.length >= 1 ? (
               <div>
-                <img src={canvases[currentCanvasIndex]} alt="" />
+                <img src={canvases[currentCanvasIndex]} alt="canvas" />
                 <div className="flex items-center justify-center mt-4 relative bottom-2">
                   <button onClick={handlePrevCanvas}>&lt;</button>
                   <span>
@@ -216,7 +219,7 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              <img src={canvases[0]} alt="" />
+              <div id="canvasGenerating" className="w-full h-full"></div>
             )}
           </div>
           <div className="flex flex-col w-1/2 mt-2 mx-auto gap-2">
@@ -240,7 +243,10 @@ export default function App() {
           </div>
         </div>
         <div className="flex flex-col items-center border h-2/3 w-[300px] justify-around border-black shadow-xl">
-          <form className="w-2/3 flex flex-col gap-8" onSubmit={handleGenerate}>
+          <form
+            className="w-2/3 flex flex-col gap-6 py-4"
+            onSubmit={handleGenerate}
+          >
             <label className="" htmlFor="orden">
               Orden de compra
             </label>
