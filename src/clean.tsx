@@ -105,6 +105,7 @@ export default function Clean() {
 
           //POR CADA ORDEN
           Object.values(groupedData).forEach((order, index) => {
+            let pages = 1
             //POR CADA ITEM EN LA ORDEN EN CASA QUE SEA MAS DE UNO
             order.forEach((element, idx) => {
               for (let i = 0; i < element["Cantidad (- reembolso)"]; i++) {
@@ -127,6 +128,9 @@ export default function Clean() {
 
                   //SI ALCANZA EL LIMITE VERTICAL GUARDA EL CANVAS Y CREA OTRO
                   if (currentY + desiredHeight + 100 > alto) {
+                    ctx.font = "100px Arial"
+                    ctx.fillText(`${pages}`, 9750,9700)
+                    
                     //@ts-ignore
                     setCanvases((prevArray) => [
                       ...prevArray,
@@ -194,7 +198,7 @@ export default function Clean() {
         <div className="h-3/4 flex flex-col justify-center">
           <div id="canvasContainer" className={`h-[550px] w-[550px] mb-6`}>
             {canvases.length > 1 ? (
-              <div>
+              <div className="h-full w-full">
                 <img src={canvases[currentCanvasIndex]} alt="" />
                 <div className="flex items-center justify-center mt-4 relative bottom-2">
                   <button onClick={handlePrevCanvas}>&lt;</button>
