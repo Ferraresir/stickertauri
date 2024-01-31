@@ -11,6 +11,7 @@ export default function CanvasLayout() {
   const [alto, setAlto] = useState(9800);
   const [padding, setPadding] = useState(49);
   const [file, setFile] = useState<File>();
+  //@ts-ignore
   const [images, setImages] = useState<{ nombre: string; path: string }[]>([]);
   const [canvases, setCanvases] = useState([]);
   const [currentCanvasIndex, setCurrentCanvasIndex] = useState(0);

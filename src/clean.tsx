@@ -5,6 +5,7 @@ import { Input } from "./components/ui/input";
 import { BaseDirectory, readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "./components/ui/slider";
+import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
 
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
@@ -30,6 +31,8 @@ export default function Clean() {
       });
     });
   }, []);
+
+  console.log(images);
 
   //PIXELS POR CM
   const pixelXCm = 98;
@@ -77,8 +80,6 @@ export default function Clean() {
         ctx.strokeRect(0, 0, ancho, alto);
         ctx.save();
 
-        //document.getElementById("canvasContainer")!.appendChild(newCanvas);
-
         //LEER EXCEL
         const fileReader = new FileReader();
         fileReader.readAsArrayBuffer(file);
@@ -96,80 +97,107 @@ export default function Clean() {
           //SEPARA POR ORDENES
           const groupedData = {};
           data.forEach((item) => {
+            //@ts-ignore
             const orden = item["Número de pedido"];
+            //@ts-ignore
             if (!groupedData[orden]) {
+              //@ts-ignore
               groupedData[orden] = [];
             }
+            //@ts-ignore
             groupedData[orden].push(item);
           });
 
-          //POR CADA ORDEN
-          Object.values(groupedData).forEach((order, index) => {
-            let pages = 1
-            //POR CADA ITEM EN LA ORDEN EN CASA QUE SEA MAS DE UNO
-            order.forEach((element, idx) => {
-              for (let i = 0; i < element["Cantidad (- reembolso)"]; i++) {
+          let imgCount = 0;
+          let pageCounter = 0;
+          //let orderCounter = 0;
+          //@ts-ignore
+          const imgs = [];
+          Object.values(groupedData).forEach((order) => {
+            let fakeOrder = {
+              "Cantidad (- reembolso)": 1,
+              "Nombre del artículo": "findeorden",
+            };
+            //@ts-ignore
+            order.push(fakeOrder);
+            //@ts-ignore
+            order.forEach((i) => {
+              for (let c = 0; c < i["Cantidad (- reembolso)"]; c++) {
                 const img = new Image();
                 img.crossOrigin = "anonymous";
-                //img.src = images.find((i) => i.nombre === `${element["Nombre del artículo"].toLowerCase()}.png`).path;
-                img.src = `/stickers/${element[
-                  "Nombre del artículo"
-                ].toLowerCase()}.png`;
-                img.onload = function () {
-                  const scale = desiredHeight / img.height;
-                  const scaledWidth = img.width * scale;
+                //img.src = `/stickers/${i["Nombre del artículo"].toLowerCase()}.png`;
+                console.log(i["Nombre del artículo"]);
+                let im = images.find(
+                  (d) =>
+                    //@ts-ignore
+                    d.nombre === `${i["Nombre del artículo"].toLowerCase()}.png`
+                );
+                //@ts-ignore
+                img.src = im.path;
+                imgs.push(img);
+                imgCount++;
+                img.onload = () => {
+                  imgCount--;
+                  if (!imgCount) {
+                    //@ts-ignore
+                    for (const img of imgs) {
+                      const scale = desiredHeight / img.height;
+                      const scaledWidth = img.width * scale;
+                      //SI ALCANZA EL LIMITE HORIZONTAL BAJA UNA LINEA
+                      if (currentX + scaledWidth + 100 > ancho) {
+                        // Move to the next row if there's not enough space
+                        currentX = 100;
+                        currentY += desiredHeight + padding;
+                      }
 
-                  //SI ALCANZA EL LIMITE HORIZONTAL BAJA UNA LINEA
-                  if (currentX + scaledWidth + 100 > ancho) {
-                    // Move to the next row if there's not enough space
-                    currentX = 100;
-                    currentY += desiredHeight + padding;
+                      //SI ALCANZA EL LIMITE VERTICAL GUARDA EL CANVAS Y CREA OTRO
+                      if (currentY + desiredHeight + 100 > alto) {
+                        ctx.fillStyle = "white";
+                        ctx.font = "bold 100px Arial";
+                        pageCounter++;
+                        ctx.fillText(`${pageCounter}`, 9650, 9650);
+                        //@ts-ignore
+                        setCanvases((prevArray) => [
+                          ...prevArray,
+                          newCanvas.toDataURL(),
+                        ]);
+                        currentX = 100;
+                        currentY = 100;
+                        ctx.reset();
+                      }
+
+                      ctx.drawImage(
+                        img,
+                        currentX,
+                        currentY,
+                        scaledWidth,
+                        desiredHeight
+                      );
+                      currentX += scaledWidth + padding;
+                    }
                   }
-
-                  //SI ALCANZA EL LIMITE VERTICAL GUARDA EL CANVAS Y CREA OTRO
-                  if (currentY + desiredHeight + 100 > alto) {
-                    ctx.font = "100px Arial"
-                    ctx.fillText(`${pages}`, 9750,9700)
-                    
+                  if (imgCount === 0) {
+                    pageCounter++;
+                    ctx.fillStyle = "white";
+                    ctx.font = "bold 100px Arial";
+                    ctx.fillText(`${pageCounter}`, 9650, 9650);
                     //@ts-ignore
                     setCanvases((prevArray) => [
                       ...prevArray,
                       newCanvas.toDataURL(),
                     ]);
-                    currentX = 100;
-                    currentY = 100;
-                    ctx.reset()
                   }
-
-                  //AGREGA IMAGEN AL CANVAS
-                  ctx.drawImage(
-                    img,
-                    currentX,
-                    currentY,
-                    scaledWidth,
-                    desiredHeight
-                  );
-                  //MUEVE EN SENTIDO HORIZONTAL
-                  currentX += scaledWidth + padding;
                 };
               }
-              
-              if(Object.values(groupedData).length -1 === index && order.length -1 === idx){
-                console.log(idx);
-                
-                
-              }  
+              // orderCounter++;
+              // if (orderCounter === order.length) {
+              //   console.log(orderCounter);
+              //   console.log(order.length);
+              //   console.log(currentX);
+              //   console.log(currentY);
+              //   orderCounter = 0;
+              // }
             });
-
-            
-            // if(index === Object.values(groupedData).length -1){
-            //   setCanvases((prevArray) => [
-            //     ...prevArray,
-            //     newCanvas.toDataURL(),
-            //   ]);
-            //   document.getElementById("canvasContainer")?.remove()
-            // }
-            
           });
         };
       } catch (error) {
@@ -196,20 +224,24 @@ export default function Clean() {
     <section>
       <div className="flex justify-center gap-32 items-center text-center w-screen h-screen">
         <div className="h-3/4 flex flex-col justify-center">
-          <div id="canvasContainer" className={`h-[550px] w-[550px] mb-6`}>
-            {canvases.length > 1 ? (
-              <div className="h-full w-full">
+          <div id="canvasContainer" className={`h-[500px] w-[500px] mb-6`}>
+            {canvases.length >= 1 ? (
+              <div>
                 <img src={canvases[currentCanvasIndex]} alt="" />
-                <div className="flex items-center justify-center mt-4 relative bottom-2">
-                  <button onClick={handlePrevCanvas}>&lt;</button>
+                <div className="flex items-center justify-center gap-2 mt-4 relative bottom-2">
+                  <button onClick={handlePrevCanvas}>
+                    <ThickArrowLeftIcon />
+                  </button>
                   <span>
                     {currentCanvasIndex + 1} / {canvases.length}
                   </span>
-                  <button onClick={handleNextCanvas}>&gt;</button>
+                  <button onClick={handleNextCanvas}>
+                    <ThickArrowRightIcon />
+                  </button>
                 </div>
               </div>
             ) : (
-              <img src={canvases[0]} alt="" />
+              <p>Genere una imagen</p>
             )}
           </div>
           <div className="flex flex-col w-1/2 mt-2 mx-auto gap-2">
