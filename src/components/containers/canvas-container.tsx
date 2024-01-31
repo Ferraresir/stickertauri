@@ -31,7 +31,6 @@ export default function CanvasLayout() {
     });
   }, []);
 
-
   //PIXELS POR CM
   const pixelXCm = 98;
 
@@ -60,7 +59,7 @@ export default function CanvasLayout() {
   async function handleGenerate(event: { preventDefault: () => void }) {
     event.preventDefault();
     setCanvases([]);
-    let canvasContainer = document.getElementById("canvasGenerating")
+    let canvasContainer = document.getElementById("canvasGenerating");
 
     //SI CARGA ARCHIVO DE PEDIDO
     if (file) {
@@ -93,11 +92,11 @@ export default function CanvasLayout() {
         const ctx = newCanvas.getContext("2d")!;
 
         //Red Border
-        ctx.lineWidth = 50;
+        ctx.lineWidth = 10;
         ctx.strokeStyle = "red";
         ctx.strokeRect(0, 0, ancho, alto); //for white background
 
-        const groupedData = {};
+        //const groupedData = {};
 
         // data.forEach((item) => {
         //   const orden = item["Número de pedido"];
@@ -139,15 +138,9 @@ export default function CanvasLayout() {
                 ]);
                 currentX = 100;
                 currentY = 100;
-                ctx.lineWidth = 50;
-                ctx.strokeStyle = "red";
-                ctx.clearRect(0, 0, ancho, alto);
-                ctx.strokeRect(0, 0, ancho, alto);
               }
-              console.log(index);
               
               if (index === data.length - 1) {
-                
                 //@ts-ignore
                 setCanvases((prevArray) => [
                   ...prevArray,

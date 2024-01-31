@@ -6,7 +6,7 @@ import { BaseDirectory, readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "./components/ui/slider";
 
-export default function App() {
+export default function Clean() {
   const [ancho, setAncho] = useState(9800);
   const [alto, setAlto] = useState(9800);
   const [padding, setPadding] = useState(49);
@@ -36,12 +36,6 @@ export default function App() {
 
   //LIMPIA EL CANVAS
   async function handleClear() {
-    // const canvas: HTMLCanvasElement = document.getElementById(
-    //   "canvas"
-    // ) as HTMLCanvasElement;
-    // const ctx = canvas.getContext("2d");
-    // //@ts-ignore
-    // ctx.clearRect(0, 0, ancho, alto);
     setCanvases([]);
   }
 
@@ -60,29 +54,16 @@ export default function App() {
     event.preventDefault();
     setCanvases([]);
 
-    //SI CARGA ARCHIVO DE PEDIDO
     if (file) {
-      //READE EXCEL
-      const fileReader = new FileReader();
-      fileReader.readAsArrayBuffer(file);
-      fileReader.onload = (e) => {
-        //@ts-ignore
-        const bufferArray = e.target.result;
-        const wb = read(bufferArray, {
-          type: "buffer",
-        });
-
-        //CONVERT EXCEL TO JSON
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
-        const data = utils.sheet_to_json(ws);
-
+      try {
         //ALTO DE IMAGEN CALCULADO EN PIXELES
         const desiredHeight = 6 * pixelXCm; // 6 cm to pixels (assuming 1 cm = 37.8 pixels)
+
         //START POINT IN CANVAS
         let currentX = 100;
         let currentY = 100;
 
+        //CREATE CANVAS
         const newCanvas = document.createElement("canvas");
         newCanvas.id = "canvas";
         newCanvas.className = "h-full w-full";
@@ -91,102 +72,110 @@ export default function App() {
         const ctx = newCanvas.getContext("2d")!;
 
         //Red Border
-        ctx.lineWidth = 50;
+        ctx.lineWidth = 18;
         ctx.strokeStyle = "red";
-        ctx.strokeRect(0, 0, ancho, alto); //for white background
+        ctx.strokeRect(0, 0, ancho, alto);
+        ctx.save();
 
-        const groupedData = {};
+        //document.getElementById("canvasContainer")!.appendChild(newCanvas);
 
-        // data.forEach((item) => {
-        //   const orden = item["Número de pedido"];
-        //   if (!groupedData[orden]) {
-        //     groupedData[orden] = [];
-        //   }
-        //   groupedData[orden].push(item);
-        // });
-
-        //console.log(groupedData);
-
-        //LOGICA POR CADA IMAGEN
-        data.forEach((d, index) => {
+        //LEER EXCEL
+        const fileReader = new FileReader();
+        fileReader.readAsArrayBuffer(file);
+        fileReader.onload = (e) => {
           //@ts-ignore
-          let order = d["Número de pedido"];
-          console.log(order);
+          const bufferArray = e.target.result;
+          const wb = read(bufferArray, {
+            type: "buffer",
+          });
+          //CONVERT EXCEL TO JSON
+          const wsname = wb.SheetNames[0];
+          const ws = wb.Sheets[wsname];
+          const data = utils.sheet_to_json(ws);
 
-          //@ts-ignore
-          let amount = d["Cantidad (- reembolso)"];
-          for (let i = 0; i < amount; i++) {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
+          //SEPARA POR ORDENES
+          const groupedData = {};
+          data.forEach((item) => {
+            const orden = item["Número de pedido"];
+            if (!groupedData[orden]) {
+              groupedData[orden] = [];
+            }
+            groupedData[orden].push(item);
+          });
 
-            // When the image is loaded, calculate dimensions and draw
-            img.onload = function () {
-              const scale = desiredHeight / img.height;
-              const scaledWidth = img.width * scale;
+          //POR CADA ORDEN
+          Object.values(groupedData).forEach((order, index) => {
+            //POR CADA ITEM EN LA ORDEN EN CASA QUE SEA MAS DE UNO
+            order.forEach((element, idx) => {
+              for (let i = 0; i < element["Cantidad (- reembolso)"]; i++) {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                //img.src = images.find((i) => i.nombre === `${element["Nombre del artículo"].toLowerCase()}.png`).path;
+                img.src = `/stickers/${element[
+                  "Nombre del artículo"
+                ].toLowerCase()}.png`;
+                img.onload = function () {
+                  const scale = desiredHeight / img.height;
+                  const scaledWidth = img.width * scale;
 
-              if (currentX + scaledWidth + 100 > newCanvas.width) {
-                // Move to the next row if there's not enough space
-                currentX = 100;
-                currentY += desiredHeight + padding;
+                  //SI ALCANZA EL LIMITE HORIZONTAL BAJA UNA LINEA
+                  if (currentX + scaledWidth + 100 > ancho) {
+                    // Move to the next row if there's not enough space
+                    currentX = 100;
+                    currentY += desiredHeight + padding;
+                  }
+
+                  //SI ALCANZA EL LIMITE VERTICAL GUARDA EL CANVAS Y CREA OTRO
+                  if (currentY + desiredHeight + 100 > alto) {
+                    //@ts-ignore
+                    setCanvases((prevArray) => [
+                      ...prevArray,
+                      newCanvas.toDataURL(),
+                    ]);
+                    currentX = 100;
+                    currentY = 100;
+                    ctx.reset()
+                  }
+
+                  //AGREGA IMAGEN AL CANVAS
+                  ctx.drawImage(
+                    img,
+                    currentX,
+                    currentY,
+                    scaledWidth,
+                    desiredHeight
+                  );
+                  //MUEVE EN SENTIDO HORIZONTAL
+                  currentX += scaledWidth + padding;
+                };
               }
+              
+              if(Object.values(groupedData).length -1 === index && order.length -1 === idx){
+                console.log(idx);
+                
+                
+              }  
+            });
 
-              if (currentY + desiredHeight + 100 > alto) {
-                //@ts-ignore
-                setCanvases((prevArray) => [
-                  ...prevArray,
-                  newCanvas.toDataURL("image/png"),
-                ]);
-                currentX = 100;
-                currentY = 100;
-                ctx.lineWidth = 50;
-                ctx.strokeStyle = "red";
-                ctx.clearRect(0, 0, ancho, alto);
-                ctx.strokeRect(0, 0, ancho, alto);
-              }
-
-              if (index === data.length - 1) {
-                //@ts-ignore
-                setCanvases((prevArray) => [
-                  ...prevArray,
-                  newCanvas.toDataURL("image/png"),
-                ]);
-              }
-
-              // Draw the scaled image
-              //@ts-ignore
-              ctx.drawImage(
-                img,
-                currentX,
-                currentY,
-                scaledWidth,
-                desiredHeight
-              );
-              // Update the X position for the next image
-              currentX += scaledWidth + padding;
-            };
-
-            // FUENTE DE LAS IMAGENES
-
-            //PUBLICA
-            //@ts-ignore
-            img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
-
-            //LOCAL
-            // let im = images.find(
-            //   (i) =>
-            //     //@ts-ignore
-            //     i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
-            // );
-            // //@ts-ignore
-            // img.src = im.path;
-          }
-        });
-        //document.getElementById("canvasContainer")?.appendChild(newCanvas);
-      };
+            
+            // if(index === Object.values(groupedData).length -1){
+            //   setCanvases((prevArray) => [
+            //     ...prevArray,
+            //     newCanvas.toDataURL(),
+            //   ]);
+            //   document.getElementById("canvasContainer")?.remove()
+            // }
+            
+          });
+        };
+      } catch (error) {
+        console.log("Error" + error);
+      }
     } else {
-      alert("Seleccione un archivo de pedido");
+      alert("Seleccione un archivo de orden");
     }
   }
+
   function handleNextCanvas() {
     setCurrentCanvasIndex((prevIndex) =>
       prevIndex < canvases.length - 1 ? prevIndex + 1 : prevIndex
