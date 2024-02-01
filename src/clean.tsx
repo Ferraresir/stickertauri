@@ -20,7 +20,7 @@ export default function Clean() {
     //CARGA LAS IMAGENES DEL DIRECTORIO
     readDir("images", {
       dir: BaseDirectory.Desktop,
-      recursive: false,
+      recursive: true,
     }).then((imgs) => {
       imgs.forEach((entry) => {
         let ent = {
@@ -31,6 +31,8 @@ export default function Clean() {
       });
     });
   }, []);
+  console.log(images);
+  
 
   //PIXELS POR CM
   const pixelXCm = 98;
@@ -136,7 +138,8 @@ export default function Clean() {
                     //@ts-ignore
                     d.nombre === `${i["Nombre del artículo"].toLowerCase()}.png`
                 );
-                //@ts-ignore
+                //@ts-ignore      
+                //img.src = "https://asset.localhost/C%3A%5CUsers%5CRamiro%5CDesktop%5Cimages%5CViajes%20y%20mas%201.png"
                 img.src = im.path;
                 imgs.push(img);
                 imgCount++;
