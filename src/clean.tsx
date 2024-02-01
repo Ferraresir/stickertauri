@@ -32,8 +32,6 @@ export default function Clean() {
     });
   }, []);
 
-  console.log(images);
-
   //PIXELS POR CM
   const pixelXCm = 98;
 
@@ -46,7 +44,14 @@ export default function Clean() {
   function handleDownload() {
     canvases.forEach((canvas) => {
       const aDownloadLink = document.createElement("a");
-      aDownloadLink.download = "canvas_image.png";
+      aDownloadLink.download = `${new Date().toLocaleDateString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })}.png`;
       aDownloadLink.href = canvas;
       aDownloadLink.click();
     });
@@ -126,7 +131,6 @@ export default function Clean() {
                 const img = new Image();
                 img.crossOrigin = "anonymous";
                 //img.src = `/stickers/${i["Nombre del artículo"].toLowerCase()}.png`;
-                console.log(i["Nombre del artículo"]);
                 let im = images.find(
                   (d) =>
                     //@ts-ignore
