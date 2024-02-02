@@ -23,7 +23,7 @@
         "all": false,
         "readDir": true,
         "readFile": true,
-        "scope": ["**"]
+        "scope": ["c:/tiendaimages"]
       },
       "dialog": {
         "all": false,

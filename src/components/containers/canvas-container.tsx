@@ -18,21 +18,21 @@ export default function Clean() {
 
   useEffect(() => {
     //CARGA LAS IMAGENES DEL DIRECTORIO
-    readDir("images", {
-      dir: BaseDirectory.Desktop,
+    readDir("C:\\tiendaimages", {
       recursive: true,
     }).then((imgs) => {
       imgs.forEach((entry) => {
-        let ent = {
-          nombre: entry.name || "",
-          path: convertFileSrc(entry.path),
-        };
-        setImages((old) => [...old, ent]);
+        Object.values(entry)[0].forEach((e) => {
+          e.name = e.path.split("\\")[2] + " " + e.path.split("\\")[3];
+          e.path = convertFileSrc(e.path);
+          setImages((old) => [...old, e]);
+        });
       });
     });
   }, []);
   //PIXELS POR CM
   const pixelXCm = 98;
+  console.log(images);
 
   //LIMPIA EL CANVAS
   async function handleClear() {
@@ -120,28 +120,34 @@ export default function Clean() {
           let drawnCount = 0;
           const imgs = [];
           let pageCounter = 0;
-          
+
           Object.values(groupedData).forEach((order) => {
             let fakeOrder = {
               "Cantidad (- reembolso)": 1,
-              "Nombre del artículo": "findeorden",
+              "Nombre del artículo": "utils findeorden",
             };
             //@ts-ignore
             order.push(fakeOrder);
             //@ts-ignore
             order.forEach((i) => {
               for (let c = 0; c < i["Cantidad (- reembolso)"]; c++) {
-                let counter = 0
+                let counter = 0;
                 const img = new Image();
                 img.crossOrigin = "anonymous";
                 const imgIdx = imgs.length;
-                img.src = `/stickers/${i[
-                  "Nombre del artículo"
-                ].toLowerCase()}.png`;
+                let im = images.find(
+                  (d) =>
+                    //@ts-ignore
+                    d.name === `${i["Nombre del artículo"].toLowerCase()}.png`
+                );
+                //@ts-ignore
+                //img.src = "https://asset.localhost/C%3A%5CUsers%5CRamiro%5CDesktop%5Cimages%5CViajes%20y%20mas%201.png"
+
+                img.src = im.path;
                 img.onload = () => {
                   imgs[imgIdx] = img;
                   while (imgs[drawnCount]) {
-                    counter+=1
+                    counter += 1;
                     let scale = desiredHeight / imgs[drawnCount].height;
                     let scaledWidth = imgs[drawnCount].width * scale;
                     //SI ALCANZA EL LIMITE HORIZONTAL BAJA UNA LINEA
@@ -178,11 +184,10 @@ export default function Clean() {
                 };
                 imgs.push(null);
                 console.log(counter);
-                
-                if(Object.values(imgs).length === counter){
-                  alert("Chori")
+
+                if (Object.values(imgs).length === counter) {
+                  alert("Chori");
                 }
-                    
               }
 
               // orderCounter++;
