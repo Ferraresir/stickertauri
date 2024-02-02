@@ -132,15 +132,15 @@ export default function Clean() {
               for (let c = 0; c < i["Cantidad (- reembolso)"]; c++) {
                 const img = new Image();
                 img.crossOrigin = "anonymous";
-                //img.src = `/stickers/${i["Nombre del artículo"].toLowerCase()}.png`;
-                let im = images.find(
-                  (d) =>
-                    //@ts-ignore
-                    d.nombre === `${i["Nombre del artículo"].toLowerCase()}.png`
-                );
+                img.src = `/stickers/${i["Nombre del artículo"].toLowerCase()}.png`;
+                // let im = images.find(
+                //   (d) =>
+                //     //@ts-ignore
+                //     d.nombre === `${i["Nombre del artículo"].toLowerCase()}.png`
+                // );
                 //@ts-ignore      
                 //img.src = "https://asset.localhost/C%3A%5CUsers%5CRamiro%5CDesktop%5Cimages%5CViajes%20y%20mas%201.png"
-                img.src = im.path;
+                //img.src = im.path;
                 imgs.push(img);
                 imgCount++;
                 img.onload = () => {

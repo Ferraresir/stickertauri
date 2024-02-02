@@ -2,16 +2,16 @@ import { useEffect, useState } from "react";
 import { read, utils } from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
 import { BaseDirectory, readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
+import { Slider } from "@/components/ui/slider";
+import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
 
-export default function CanvasLayout() {
+export default function Clean() {
   const [ancho, setAncho] = useState(9800);
   const [alto, setAlto] = useState(9800);
   const [padding, setPadding] = useState(49);
   const [file, setFile] = useState<File>();
-  //@ts-ignore
   const [images, setImages] = useState<{ nombre: string; path: string }[]>([]);
   const [canvases, setCanvases] = useState([]);
   const [currentCanvasIndex, setCurrentCanvasIndex] = useState(0);
@@ -20,7 +20,7 @@ export default function CanvasLayout() {
     //CARGA LAS IMAGENES DEL DIRECTORIO
     readDir("images", {
       dir: BaseDirectory.Desktop,
-      recursive: false,
+      recursive: true,
     }).then((imgs) => {
       imgs.forEach((entry) => {
         let ent = {
@@ -31,18 +31,11 @@ export default function CanvasLayout() {
       });
     });
   }, []);
-
   //PIXELS POR CM
   const pixelXCm = 98;
 
   //LIMPIA EL CANVAS
   async function handleClear() {
-    // const canvas: HTMLCanvasElement = document.getElementById(
-    //   "canvas"
-    // ) as HTMLCanvasElement;
-    // const ctx = canvas.getContext("2d");
-    // //@ts-ignore
-    // ctx.clearRect(0, 0, ancho, alto);
     setCanvases([]);
   }
 
@@ -50,7 +43,14 @@ export default function CanvasLayout() {
   function handleDownload() {
     canvases.forEach((canvas) => {
       const aDownloadLink = document.createElement("a");
-      aDownloadLink.download = "canvas_image.png";
+      aDownloadLink.download = `${new Date().toLocaleDateString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })}.png`;
       aDownloadLink.href = canvas;
       aDownloadLink.click();
     });
@@ -60,31 +60,17 @@ export default function CanvasLayout() {
   async function handleGenerate(event: { preventDefault: () => void }) {
     event.preventDefault();
     setCanvases([]);
-    let canvasContainer = document.getElementById("canvasGenerating");
 
-    //SI CARGA ARCHIVO DE PEDIDO
     if (file) {
-      //READE EXCEL
-      const fileReader = new FileReader();
-      fileReader.readAsArrayBuffer(file);
-      fileReader.onload = (e) => {
-        //@ts-ignore
-        const bufferArray = e.target.result;
-        const wb = read(bufferArray, {
-          type: "buffer",
-        });
-
-        //CONVERT EXCEL TO JSON
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
-        const data = utils.sheet_to_json(ws);
-
+      try {
         //ALTO DE IMAGEN CALCULADO EN PIXELES
         const desiredHeight = 6 * pixelXCm; // 6 cm to pixels (assuming 1 cm = 37.8 pixels)
+
         //START POINT IN CANVAS
         let currentX = 100;
         let currentY = 100;
 
+        //CREATE CANVAS
         const newCanvas = document.createElement("canvas");
         newCanvas.id = "canvas";
         newCanvas.className = "h-full w-full";
@@ -93,97 +79,131 @@ export default function CanvasLayout() {
         const ctx = newCanvas.getContext("2d")!;
 
         //Red Border
-        ctx.lineWidth = 10;
+        ctx.lineWidth = 18;
         ctx.strokeStyle = "red";
-        ctx.strokeRect(0, 0, ancho, alto); //for white background
+        ctx.strokeRect(0, 0, ancho, alto);
+        ctx.save();
 
-        //const groupedData = {};
+        document
+          .getElementById("canvasContainer")
+          ?.appendChild(newCanvas)
+          .setAttribute("id", "newCanvas");
 
-        // data.forEach((item) => {
-        //   const orden = item["Número de pedido"];
-        //   if (!groupedData[orden]) {
-        //     groupedData[orden] = [];
-        //   }
-        //   groupedData[orden].push(item);
-        // });
-
-        //console.log(groupedData);
-
-        //LOGICA POR CADA IMAGEN
-        data.forEach((d, index) => {
+        //LEER EXCEL
+        const fileReader = new FileReader();
+        fileReader.readAsArrayBuffer(file);
+        fileReader.onload = (e) => {
           //@ts-ignore
-          let order = d["Número de pedido"];
+          const bufferArray = e.target.result;
+          const wb = read(bufferArray, {
+            type: "buffer",
+          });
+          //CONVERT EXCEL TO JSON
+          const wsname = wb.SheetNames[0];
+          const ws = wb.Sheets[wsname];
+          const data = utils.sheet_to_json(ws);
 
-          //@ts-ignore
-          let amount = d["Cantidad (- reembolso)"];
-          for (let i = 0; i < amount; i++) {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-
-            // When the image is loaded, calculate dimensions and draw
-            img.onload = function () {
-              const scale = desiredHeight / img.height;
-              const scaledWidth = img.width * scale;
-
-              if (currentX + scaledWidth + 100 > newCanvas.width) {
-                // Move to the next row if there's not enough space
-                currentX = 100;
-                currentY += desiredHeight + padding;
-              }
-
-              if (currentY + desiredHeight + 100 > alto) {
-                //@ts-ignore
-                setCanvases((prevArray) => [
-                  ...prevArray,
-                  newCanvas.toDataURL(),
-                ]);
-                currentX = 100;
-                currentY = 100;
-              }
-              
-              if (index === data.length - 1) {
-                //@ts-ignore
-                setCanvases((prevArray) => [
-                  ...prevArray,
-                  newCanvas.toDataURL(),
-                ]);
-              }
-
-              // Draw the scaled image
-              //@ts-ignore
-              ctx.drawImage(
-                img,
-                currentX,
-                currentY,
-                scaledWidth,
-                desiredHeight
-              );
-              // Update the X position for the next image
-              currentX += scaledWidth + padding;
-            };
-
-            // FUENTE DE LAS IMAGENES
-
-            //PUBLICA
+          //SEPARA POR ORDENES
+          const groupedData = {};
+          data.forEach((item) => {
             //@ts-ignore
-            img.src = `/stickers/${d["Nombre del artículo"].toLowerCase()}.png`;
+            const orden = item["Número de pedido"];
+            //@ts-ignore
+            if (!groupedData[orden]) {
+              //@ts-ignore
+              groupedData[orden] = [];
+            }
+            //@ts-ignore
+            groupedData[orden].push(item);
+          });
 
-            //LOCAL
-            // let im = images.find(
-            //   (i) =>
-            //     //@ts-ignore
-            //     i.nombre === `${d["Nombre del artículo"].toLowerCase()}.png`
-            // );
-            // //@ts-ignore
-            // img.src = im.path;
-          }
-        });
-        canvasContainer?.appendChild(newCanvas);
-      };
+          let drawnCount = 0;
+          const imgs = [];
+          let pageCounter = 0;
+          
+          Object.values(groupedData).forEach((order) => {
+            let fakeOrder = {
+              "Cantidad (- reembolso)": 1,
+              "Nombre del artículo": "findeorden",
+            };
+            //@ts-ignore
+            order.push(fakeOrder);
+            //@ts-ignore
+            order.forEach((i) => {
+              for (let c = 0; c < i["Cantidad (- reembolso)"]; c++) {
+                let counter = 0
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                const imgIdx = imgs.length;
+                img.src = `/stickers/${i[
+                  "Nombre del artículo"
+                ].toLowerCase()}.png`;
+                img.onload = () => {
+                  imgs[imgIdx] = img;
+                  while (imgs[drawnCount]) {
+                    counter+=1
+                    let scale = desiredHeight / imgs[drawnCount].height;
+                    let scaledWidth = imgs[drawnCount].width * scale;
+                    //SI ALCANZA EL LIMITE HORIZONTAL BAJA UNA LINEA
+                    if (currentX + scaledWidth + 100 > ancho) {
+                      // Move to the next row if there's not enough space
+                      currentX = 100;
+                      currentY += desiredHeight + padding;
+                    }
+
+                    //SI ALCANZA EL LIMITE VERTICAL GUARDA EL CANVAS Y CREA OTRO
+                    if (currentY + desiredHeight + 100 > alto) {
+                      ctx.fillStyle = "white";
+                      ctx.font = "bold 100px Arial";
+                      pageCounter++;
+                      ctx.fillText(`${pageCounter}`, 9650, 9650);
+                      //@ts-ignore
+                      setCanvases((prevArray) => [
+                        ...prevArray,
+                        newCanvas.toDataURL(),
+                      ]);
+                      currentX = 100;
+                      currentY = 100;
+                      ctx.reset();
+                    }
+                    ctx.drawImage(
+                      imgs[drawnCount++],
+                      currentX,
+                      currentY,
+                      scaledWidth,
+                      desiredHeight
+                    );
+                    currentX += scaledWidth + padding;
+                  }
+                };
+                imgs.push(null);
+                console.log(counter);
+                
+                if(Object.values(imgs).length === counter){
+                  alert("Chori")
+                }
+                    
+              }
+
+              // orderCounter++;
+              // if (orderCounter === order.length) {
+              //   console.log(orderCounter);
+              //   console.log(order.length);
+              //   console.log(currentX);
+              //   console.log(currentY);
+              //   orderCounter = 0;
+              // }
+            });
+          });
+        };
+      } catch (error) {
+        console.log("Error" + error);
+      }
     } else {
-      alert("Seleccione un archivo de pedido");
+      alert("Seleccione un archivo de orden");
     }
   }
+
   function handleNextCanvas() {
     setCurrentCanvasIndex((prevIndex) =>
       prevIndex < canvases.length - 1 ? prevIndex + 1 : prevIndex
@@ -198,22 +218,26 @@ export default function CanvasLayout() {
 
   return (
     <section>
-      <div className="flex justify-center mt-6 gap-32 items-center text-center w-full h-full">
-        <div className="h-full flex flex-col justify-center">
-          <div id="canvasContainer" className={`h-[400px] w-[400px]`}>
+      <div className="flex justify-center gap-32 items-center text-center w-screen h-screen">
+        <div className="h-3/4 flex flex-col justify-center">
+          <div id="canvasContainer" className={`h-[500px] w-[500px] mb-6`}>
             {canvases.length >= 1 ? (
               <div>
-                <img src={canvases[currentCanvasIndex]} alt="canvas" />
-                <div className="flex items-center justify-center mt-4 relative bottom-2">
-                  <button onClick={handlePrevCanvas}>&lt;</button>
+                <img src={canvases[currentCanvasIndex]} alt="" />
+                <div className="flex items-center justify-center gap-2 mt-4 relative bottom-2">
+                  <button onClick={handlePrevCanvas}>
+                    <ThickArrowLeftIcon />
+                  </button>
                   <span>
                     {currentCanvasIndex + 1} / {canvases.length}
                   </span>
-                  <button onClick={handleNextCanvas}>&gt;</button>
+                  <button onClick={handleNextCanvas}>
+                    <ThickArrowRightIcon />
+                  </button>
                 </div>
               </div>
             ) : (
-              <div id="canvasGenerating" className="w-full h-full"></div>
+              <p>Genere una imagen</p>
             )}
           </div>
           <div className="flex flex-col w-1/2 mt-2 mx-auto gap-2">
@@ -237,10 +261,7 @@ export default function CanvasLayout() {
           </div>
         </div>
         <div className="flex flex-col items-center border h-2/3 w-[300px] justify-around border-black shadow-xl">
-          <form
-            className="w-2/3 flex flex-col gap-6 py-4"
-            onSubmit={handleGenerate}
-          >
+          <form className="w-2/3 flex flex-col gap-8" onSubmit={handleGenerate}>
             <label className="" htmlFor="orden">
               Orden de compra
             </label>
