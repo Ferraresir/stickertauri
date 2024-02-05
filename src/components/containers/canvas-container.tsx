@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { read, utils } from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BaseDirectory, readDir } from "@tauri-apps/api/fs";
+import { readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "@/components/ui/slider";
 import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
@@ -12,17 +12,18 @@ export default function Clean() {
   const [alto, setAlto] = useState(9800);
   const [padding, setPadding] = useState(49);
   const [file, setFile] = useState<File>();
-  const [images, setImages] = useState<{ nombre: string; path: string }[]>([]);
+  const [images, setImages] = useState<{ name: string; path: string }[]>([]);
   const [canvases, setCanvases] = useState([]);
   const [currentCanvasIndex, setCurrentCanvasIndex] = useState(0);
 
   useEffect(() => {
+    setImages([]);
     //CARGA LAS IMAGENES DEL DIRECTORIO
     readDir("C:\\tiendaimages", {
       recursive: true,
     }).then((imgs) => {
       imgs.forEach((entry) => {
-        Object.values(entry)[0].forEach((e) => {
+        Object.values(entry)[0].forEach((e: { name: string; path: string }) => {
           e.name = e.path.split("\\")[2] + " " + e.path.split("\\")[3];
           e.path = convertFileSrc(e.path);
           setImages((old) => [...old, e]);
@@ -118,7 +119,7 @@ export default function Clean() {
           });
 
           let drawnCount = 0;
-          const imgs = [];
+          const imgs: any = [];
           let pageCounter = 0;
 
           Object.values(groupedData).forEach((order) => {

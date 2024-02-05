@@ -23,7 +23,8 @@
         "all": false,
         "readDir": true,
         "readFile": true,
-        "scope": ["c:/tiendaimages"]
+        "writeFile": true,
+        "scope": ["c:/tiendaimages","c:/tiendaimages/cortar"]
       },
       "dialog": {
         "all": false,
