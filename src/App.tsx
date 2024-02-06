@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/menubar";
 import { ModeToggle } from "@/components/mode-toggle";
 
-import CropContainer from "./components/containers/crop-container";
+//import CropContainer from "./components/containers/crop-container";
 import CanvasLayout from "./components/containers/canvas-container";
 
 export default function App() {
@@ -23,10 +23,10 @@ export default function App() {
             <Link to="/canvas">
               <MenubarItem>Canvas</MenubarItem>
             </Link>
-            <MenubarSeparator />
+            {/* <MenubarSeparator />
             <Link to="/crop">
               <MenubarItem>Crop</MenubarItem>
-            </Link>
+            </Link> */}
           </MenubarContent>
         </MenubarMenu>
         <div className="w-full flex justify-end">
@@ -35,7 +35,7 @@ export default function App() {
       </Menubar>
       <Routes>
         <Route path="/canvas" element={<CanvasLayout />} />
-        <Route path="/crop" element={<CropContainer />} />
+        {/* <Route path="/crop" element={<CropContainer />} /> */}
       </Routes>
     </div>
   );

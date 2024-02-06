@@ -33,7 +33,6 @@ export default function Clean() {
   }, []);
   //PIXELS POR CM
   const pixelXCm = 98;
-  console.log(images);
 
   //LIMPIA EL CANVAS
   async function handleClear() {
@@ -80,16 +79,11 @@ export default function Clean() {
         const ctx = newCanvas.getContext("2d")!;
 
         //Red Border
-        ctx.lineWidth = 18;
+        ctx.lineWidth = 30;
         ctx.strokeStyle = "red";
         ctx.strokeRect(0, 0, ancho, alto);
-        ctx.save();
 
-        document
-          .getElementById("canvasContainer")
-          ?.appendChild(newCanvas)
-          .setAttribute("id", "newCanvas");
-
+        
         //LEER EXCEL
         const fileReader = new FileReader();
         fileReader.readAsArrayBuffer(file);
@@ -130,7 +124,7 @@ export default function Clean() {
             //@ts-ignore
             order.push(fakeOrder);
             //@ts-ignore
-            order.forEach((i) => {
+            order.forEach((i, eachidx) => {
               for (let c = 0; c < i["Cantidad (- reembolso)"]; c++) {
                 let counter = 0;
                 const img = new Image();
@@ -138,12 +132,14 @@ export default function Clean() {
                 const imgIdx = imgs.length;
                 let im = images.find(
                   (d) =>
-                    //@ts-ignore
                     d.name === `${i["Nombre del artículo"].toLowerCase()}.png`
                 );
+                if (im === undefined) {
+                  alert(
+                    `No se encontro la imagen "${i["Nombre del artículo"]}"`
+                  );
+                }
                 //@ts-ignore
-                //img.src = "https://asset.localhost/C%3A%5CUsers%5CRamiro%5CDesktop%5Cimages%5CViajes%20y%20mas%201.png"
-
                 img.src = im.path;
                 img.onload = () => {
                   imgs[imgIdx] = img;
@@ -167,12 +163,19 @@ export default function Clean() {
                       //@ts-ignore
                       setCanvases((prevArray) => [
                         ...prevArray,
-                        newCanvas.toDataURL(),
+                        newCanvas.toDataURL("image/PNG"),
                       ]);
                       currentX = 100;
                       currentY = 100;
                       ctx.reset();
                     }
+
+
+                    if(imgs[drawnCount].src.split("%5C")[3] === "findeorden.png"){
+                      console.log("ORDERRRRRRRRRR");
+                      
+                    }
+                    
                     ctx.drawImage(
                       imgs[drawnCount++],
                       currentX,
@@ -181,24 +184,25 @@ export default function Clean() {
                       desiredHeight
                     );
                     currentX += scaledWidth + padding;
+
+                    if (drawnCount === imgs.length) {
+                      ctx.fillStyle = "white";
+                      ctx.font = "bold 100px Arial";
+                      pageCounter++;
+                      ctx.fillText(`${pageCounter}`, 9650, 9650);
+                      ctx.lineWidth = 30;
+                      ctx.strokeStyle = "red";
+                      ctx.strokeRect(0, 0, ancho, alto);
+                      //@ts-ignore
+                      setCanvases((prevArray) => [
+                        ...prevArray,
+                        newCanvas.toDataURL("image/PNG"),
+                      ]);
+                    }
                   }
                 };
                 imgs.push(null);
-                console.log(counter);
-
-                if (Object.values(imgs).length === counter) {
-                  alert("Chori");
-                }
-              }
-
-              // orderCounter++;
-              // if (orderCounter === order.length) {
-              //   console.log(orderCounter);
-              //   console.log(order.length);
-              //   console.log(currentX);
-              //   console.log(currentY);
-              //   orderCounter = 0;
-              // }
+              }              
             });
           });
         };
@@ -227,7 +231,8 @@ export default function Clean() {
       <div className="flex justify-center gap-32 items-center text-center w-screen h-screen">
         <div className="h-3/4 flex flex-col justify-center">
           <div id="canvasContainer" className={`h-[500px] w-[500px] mb-6`}>
-            {canvases.length >= 1 ? (
+            {/* <div id="tempcanvas" className={`h-[500px] w-[500px] mb-6`}></div> */}
+            {canvases.length >= 1 && (
               <div>
                 <img src={canvases[currentCanvasIndex]} alt="" />
                 <div className="flex items-center justify-center gap-2 mt-4 relative bottom-2">
@@ -242,8 +247,6 @@ export default function Clean() {
                   </button>
                 </div>
               </div>
-            ) : (
-              <p>Genere una imagen</p>
             )}
           </div>
           <div className="flex flex-col w-1/2 mt-2 mx-auto gap-2">
