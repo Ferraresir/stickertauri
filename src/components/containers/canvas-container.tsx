@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { read, utils } from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { readDir } from "@tauri-apps/api/fs";
+import { BaseDirectory, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "@/components/ui/slider";
 import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
+//@ts-ignore
+import { MapInteractionCSS } from "react-map-interaction";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
@@ -40,9 +43,11 @@ export default function Clean() {
   }
 
   //DOWNLOAD THE CANVAS IN PNG IMAGE
+
   function handleDownload() {
     canvases.forEach((canvas) => {
       const aDownloadLink = document.createElement("a");
+      aDownloadLink.setAttribute("download", "true");
       aDownloadLink.download = `${new Date().toLocaleDateString("es-AR", {
         day: "2-digit",
         month: "2-digit",
@@ -69,8 +74,7 @@ export default function Clean() {
         //START POINT IN CANVAS
         let currentX = 100;
         let currentY = 100;
-        let client = 0
-
+        let client = 0;
 
         //CREATE CANVAS
         const newCanvas = document.createElement("canvas");
@@ -182,9 +186,20 @@ export default function Clean() {
                       ctx.fillStyle = "#1E1F1C";
                       ctx.font = "45px Bebas Neue";
                       //@ts-ignore
-                      ctx.fillText(`${order[0]["Nombre (facturación)"].toUpperCase()} ${order[0]["Apellidos (facturación)"].toUpperCase()}`, -400, 100,335);
+                      ctx.fillText(
+                        //@ts-ignore
+                        `${order[0][
+                          "Nombre (facturación)"
+                          //@ts-ignore
+                        ].toUpperCase()} ${order[0][
+                          "Apellidos (facturación)"
+                        ].toUpperCase()}`,
+                        -400,
+                        100,
+                        335
+                      );
                       ctx.restore();
-                      client +=1
+                      client += 1;
                     }
 
                     ctx.globalCompositeOperation = "destination-over";
@@ -242,12 +257,16 @@ export default function Clean() {
     <section>
       <div className="flex justify-center gap-32 items-center text-center w-screen h-screen">
         <div className="h-3/4 flex flex-col justify-center">
-          <div id="canvasContainer" className={`h-[600px] w-[600px] mb-6`}>
+          <div id="canvasContainer" className={`h-[500px] w-[500px] mb-5`}>
             {/* <div id="tempcanvas" className={`h-[500px] w-[500px] mb-6`}></div> */}
             {canvases.length >= 1 && (
-              <div>
-                <img src={canvases[currentCanvasIndex]} alt="" />
-                <div className="flex items-center justify-center gap-2 mt-4 relative bottom-2">
+              <div className="w-full h-full">
+                <TransformWrapper>
+                  <TransformComponent>
+                    <img src={canvases[currentCanvasIndex]} alt="canvas" />
+                  </TransformComponent>
+                </TransformWrapper>
+                <div className="flex items-center justify-center gap-2 mt-3 relative bottom-2">
                   <button onClick={handlePrevCanvas}>
                     <ThickArrowLeftIcon />
                   </button>
@@ -261,9 +280,9 @@ export default function Clean() {
               </div>
             )}
           </div>
-          <div className="flex flex-col w-1/2 mt-2 mx-auto gap-2">
+          <div className="flex flex-col w-1/2 mt-2 mx-auto gap-1">
             <Button
-              className="border mt-2"
+              className="border mt-1"
               onClick={() => {
                 handleDownload();
               }}
