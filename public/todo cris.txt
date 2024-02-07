@@ -1,5 +1,0 @@
-hacer metro x metro
-dividir en varias hojas y continue en otro canvas numerandolo (no importa si termina por la mitad)
-poner icono de compras al final de la orden
-
-

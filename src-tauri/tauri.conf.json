@@ -53,7 +53,7 @@
       ]
     },
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost"
+      "csp": "default-src 'self'; img-src 'self' data: https: asset: https://asset.localhost"
     },
     "windows": [
       {

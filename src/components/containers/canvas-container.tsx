@@ -69,6 +69,8 @@ export default function Clean() {
         //START POINT IN CANVAS
         let currentX = 100;
         let currentY = 100;
+        let client = 0
+
 
         //CREATE CANVAS
         const newCanvas = document.createElement("canvas");
@@ -83,7 +85,6 @@ export default function Clean() {
         ctx.strokeStyle = "red";
         ctx.strokeRect(0, 0, ancho, alto);
 
-        
         //LEER EXCEL
         const fileReader = new FileReader();
         fileReader.readAsArrayBuffer(file);
@@ -170,12 +171,23 @@ export default function Clean() {
                       ctx.reset();
                     }
 
-
-                    if(imgs[drawnCount].src.split("%5C")[3] === "findeorden.png"){
-                      console.log("ORDERRRRRRRRRR");
-                      
+                    if (
+                      imgs[drawnCount].src.split("%5C")[3] === "findeorden.png"
+                    ) {
+                      ctx.save();
+                      ctx.textAlign = "center";
+                      ctx.textBaseline = "middle";
+                      ctx.translate(currentX, currentY);
+                      ctx.rotate(Math.PI / 0.66669);
+                      ctx.fillStyle = "#1E1F1C";
+                      ctx.font = "45px Bebas Neue";
+                      //@ts-ignore
+                      ctx.fillText(`${order[0]["Nombre (facturación)"].toUpperCase()} ${order[0]["Apellidos (facturación)"].toUpperCase()}`, -400, 100,335);
+                      ctx.restore();
+                      client +=1
                     }
-                    
+
+                    ctx.globalCompositeOperation = "destination-over";
                     ctx.drawImage(
                       imgs[drawnCount++],
                       currentX,
@@ -202,7 +214,7 @@ export default function Clean() {
                   }
                 };
                 imgs.push(null);
-              }              
+              }
             });
           });
         };
@@ -230,7 +242,7 @@ export default function Clean() {
     <section>
       <div className="flex justify-center gap-32 items-center text-center w-screen h-screen">
         <div className="h-3/4 flex flex-col justify-center">
-          <div id="canvasContainer" className={`h-[500px] w-[500px] mb-6`}>
+          <div id="canvasContainer" className={`h-[600px] w-[600px] mb-6`}>
             {/* <div id="tempcanvas" className={`h-[500px] w-[500px] mb-6`}></div> */}
             {canvases.length >= 1 && (
               <div>

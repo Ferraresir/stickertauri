@@ -1,9 +1,8 @@
 //@ts-ignore
-import sharp from "sharp";
 import { useEffect, useState } from "react";
+//@ts-ignore
 import { readDir, writeFile } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
-import { Button } from "../ui/button";
 
 // async function test() {
 //   // giving more info about the background doesn't make a difference :(
@@ -33,33 +32,16 @@ export default function CropContainer() {
     }).then((imgs) => {
       imgs.forEach((entry) => {
         entry.path = convertFileSrc(entry.path);
+        //@ts-ignore
         setImages((old) => [...old, entry]);
       });
     });
   }, []);
 
-
   return (
     <div className="w-full h-full flex flex-col gap-6 justify-center items-center">
-      <div className="w-2/4 h-3/4">
-        {images.map((img, i) => (
-          <img
-            key={i}
-            src={img.path}
-            alt="a cortar"
-            className="w-[10%] bg-black bg-opacity-70"
-          />
-        ))}
-      </div>
-      <div>
-        <Button
-          onClick={() => {
-            handleCortar();
-          }}
-        >
-          Cortar
-        </Button>
-      </div>
+      {/* @ts-ignore */}
+      {images ? images.map((i) => <img src={i.path} />) : <p>No image</p>}
     </div>
   );
 }
