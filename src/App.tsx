@@ -19,7 +19,7 @@ export default function App() {
         <MenubarMenu>
           <MenubarTrigger>Aplicacion</MenubarTrigger>
           <MenubarContent>
-            <Link to="/canvas">
+            <Link to="/">
               <MenubarItem>Canvas</MenubarItem>
             </Link>
             {/* <MenubarSeparator />
@@ -33,7 +33,7 @@ export default function App() {
         </div>
       </Menubar>
       <Routes>
-        <Route path="/canvas" element={<CanvasLayout />} />
+        <Route path="/" element={<CanvasLayout />} />
         {/* <Route path="/crop" element={<CropContainer />} /> */}
       </Routes>
     </div>

@@ -2,13 +2,10 @@ import { useEffect, useState } from "react";
 import { read, utils } from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BaseDirectory, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
+import { readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "@/components/ui/slider";
 import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
-//@ts-ignore
-import { MapInteractionCSS } from "react-map-interaction";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
@@ -40,6 +37,7 @@ export default function Clean() {
   //LIMPIA EL CANVAS
   async function handleClear() {
     setCanvases([]);
+    setCurrentCanvasIndex(0);
   }
 
   //DOWNLOAD THE CANVAS IN PNG IMAGE
@@ -65,6 +63,7 @@ export default function Clean() {
   async function handleGenerate(event: { preventDefault: () => void }) {
     event.preventDefault();
     setCanvases([]);
+    setCurrentCanvasIndex(0);
 
     if (file) {
       try {
@@ -78,11 +77,14 @@ export default function Clean() {
 
         //CREATE CANVAS
         const newCanvas = document.createElement("canvas");
-        newCanvas.id = "canvas";
+        newCanvas.id = "temp";
         newCanvas.className = "h-full w-full";
         newCanvas.width = ancho;
         newCanvas.height = alto;
         const ctx = newCanvas.getContext("2d")!;
+
+        document.getElementById("tempcanvas")?.classList.remove("hidden");
+        document.getElementById("tempcanvas")?.appendChild(newCanvas);
 
         //Red Border
         ctx.lineWidth = 30;
@@ -164,7 +166,7 @@ export default function Clean() {
                       ctx.fillStyle = "white";
                       ctx.font = "bold 100px Arial";
                       pageCounter++;
-                      ctx.fillText(`${pageCounter}`, 9650, 9650);
+                      ctx.fillText(`${pageCounter}`, ancho - 100, alto - 100);
                       //@ts-ignore
                       setCanvases((prevArray) => [
                         ...prevArray,
@@ -173,6 +175,11 @@ export default function Clean() {
                       currentX = 100;
                       currentY = 100;
                       ctx.reset();
+
+                      //Red Border
+                      ctx.lineWidth = 30;
+                      ctx.strokeStyle = "red";
+                      ctx.strokeRect(0, 0, ancho, alto);
                     }
 
                     if (
@@ -215,8 +222,10 @@ export default function Clean() {
                     if (drawnCount === imgs.length) {
                       ctx.fillStyle = "white";
                       ctx.font = "bold 100px Arial";
-                      pageCounter++;
-                      ctx.fillText(`${pageCounter}`, 9650, 9650);
+                      if (pageCounter >= 1) {
+                        pageCounter++;
+                        ctx.fillText(`${pageCounter}`, ancho - 100, alto - 100);
+                      }
                       ctx.lineWidth = 30;
                       ctx.strokeStyle = "red";
                       ctx.strokeRect(0, 0, ancho, alto);
@@ -225,6 +234,12 @@ export default function Clean() {
                         ...prevArray,
                         newCanvas.toDataURL("image/PNG"),
                       ]);
+                      setTimeout(() => {
+                        document
+                          .getElementById("tempcanvas")
+                          ?.classList.add("hidden");
+                        document.getElementById("temp")?.remove();
+                      }, 2500);
                     }
                   }
                 };
@@ -255,17 +270,13 @@ export default function Clean() {
 
   return (
     <section>
-      <div className="flex justify-center gap-32 items-center text-center w-screen h-screen">
+      <div className="flex justify-center gap-36 items-center text-center w-screen h-screen">
         <div className="h-3/4 flex flex-col justify-center">
           <div id="canvasContainer" className={`h-[500px] w-[500px] mb-5`}>
-            {/* <div id="tempcanvas" className={`h-[500px] w-[500px] mb-6`}></div> */}
+            <div id="tempcanvas" className={`h-[500px] w-[500px] mb-6`}></div>
             {canvases.length >= 1 && (
               <div className="w-full h-full">
-                <TransformWrapper>
-                  <TransformComponent>
-                    <img src={canvases[currentCanvasIndex]} alt="canvas" />
-                  </TransformComponent>
-                </TransformWrapper>
+                <img src={canvases[currentCanvasIndex]} alt="canvas" />
                 <div className="flex items-center justify-center gap-2 mt-3 relative bottom-2">
                   <button onClick={handlePrevCanvas}>
                     <ThickArrowLeftIcon />
@@ -377,6 +388,8 @@ export default function Clean() {
             <div className="flex gap-1">
               <p>0</p>
               <Slider
+                id="margen"
+                name="margen"
                 defaultValue={[padding / pixelXCm]}
                 max={3}
                 min={0}
