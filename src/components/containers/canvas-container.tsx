@@ -293,7 +293,7 @@ export default function Clean() {
           </div>
           <div className="flex flex-col w-1/2 mt-2 mx-auto gap-1">
             <Button
-              className="border mt-1"
+              className="border border-black mt-1 hover:bg-yellow-200"
               onClick={() => {
                 handleDownload();
               }}
@@ -302,7 +302,7 @@ export default function Clean() {
             </Button>
             <Button
               variant="destructive"
-              className="border"
+              className="border hover:bg-red-600"
               onClick={() => {
                 handleClear();
               }}
@@ -311,8 +311,8 @@ export default function Clean() {
             </Button>
           </div>
         </div>
-        <div className="flex flex-col items-center border h-2/3 w-[300px] justify-around border-black shadow-xl">
-          <form className="w-2/3 flex flex-col gap-8" onSubmit={handleGenerate}>
+        <div className="flex flex-col items-center border h-2/3 w-[300px] justify-around border-black shadow-xl bg-gray-100">
+          <form className="w-2/3 flex flex-col gap-12" onSubmit={handleGenerate}>
             <label className="" htmlFor="orden">
               Orden de compra
             </label>
@@ -338,42 +338,48 @@ export default function Clean() {
               name="imageFolder"
               onClick={() => handleFolder()}
             /> */}
+            <div className="flex">
+              <div>
+                <label className="" htmlFor="ancho">
+                  Ancho
+                </label>
+                <Input
+                  type="number"
+                  id="ancho"
+                  name="ancho"
+                  value={Math.round(ancho / pixelXCm)}
+                  placeholder="Ancho de plantilla"
+                  step={1}
+                  className="text-center w-2/3 mx-auto"
+                  onChange={(event) =>
+                    setAncho(Number(event.target.value) * pixelXCm)
+                  }
+                />
+              </div>
+              <div>
+                <label className="" htmlFor="alto">
+                  Alto
+                </label>
+                <Input
+                  type="number"
+                  id="alto"
+                  name="alto"
+                  value={Math.round(alto / pixelXCm)}
+                  placeholder="Altura de plantilla"
+                  step={1}
+                  className="text-center w-2/3 mx-auto"
+                  onChange={(event) =>
+                    setAlto(Number(event.target.value) * pixelXCm)
+                  }
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="" htmlFor="margen">
+                {`Margenes: ${Math.round((padding / pixelXCm) * 100) / 100} Cm`}
+              </label>
 
-            <label className="" htmlFor="ancho">
-              Ancho de plantilla
-            </label>
-            <Input
-              type="number"
-              id="ancho"
-              name="ancho"
-              value={Math.round(ancho / pixelXCm)}
-              placeholder="Ancho de plantilla"
-              step={1}
-              className="text-center w-2/3 mx-auto"
-              onChange={(event) =>
-                setAncho(Number(event.target.value) * pixelXCm)
-              }
-            />
-            <label className="" htmlFor="alto">
-              Altura de plantilla
-            </label>
-            <Input
-              type="number"
-              id="alto"
-              name="alto"
-              value={Math.round(alto / pixelXCm)}
-              placeholder="Altura de plantilla"
-              step={1}
-              className="text-center w-2/3 mx-auto"
-              onChange={(event) =>
-                setAlto(Number(event.target.value) * pixelXCm)
-              }
-            />
-            <label className="" htmlFor="margen">
-              {`Margenes: ${Math.round((padding / pixelXCm) * 100) / 100} Cm`}
-            </label>
-
-            {/* INPUT DE MARGENES MANUAL o SLIDER 
+              {/* INPUT DE MARGENES MANUAL o SLIDER 
             <Input
               type="number"
               id="margen"
@@ -385,23 +391,24 @@ export default function Clean() {
               }
             /> */}
 
-            <div className="flex gap-1">
-              <p>0</p>
-              <Slider
-                id="margen"
-                name="margen"
-                defaultValue={[padding / pixelXCm]}
-                max={3}
-                min={0}
-                step={0.1}
-                onValueChange={(event: any[]) =>
-                  setPadding(Number(event[0]) * pixelXCm)
-                }
-              />
-              <p>3</p>
+              <div className="flex gap-1">
+                <p>0</p>
+                <Slider
+                  id="margen"
+                  name="margen"
+                  defaultValue={[padding / pixelXCm]}
+                  max={3}
+                  min={0}
+                  step={0.1}
+                  onValueChange={(event: any[]) =>
+                    setPadding(Number(event[0]) * pixelXCm)
+                  }
+                />
+                <p>3</p>
+              </div>
             </div>
             <Button
-              className="shadow-sm border shadow-black"
+              className="shadow-sm border shadow-black hover:bg-yellow-200"
               variant="outline"
               type="submit"
             >

@@ -24,7 +24,7 @@
         "readDir": true,
         "readFile": true,
         "writeFile": true,
-        "scope": ["c:/tiendaimages","c:/tiendaimages/cortar"]
+        "scope": ["c:/tiendaimages", "c:/tiendaimages/cortar"]
       },
       "dialog": {
         "all": false,
@@ -44,18 +44,16 @@
       "active": true,
       "targets": "msi",
       "identifier": "com.tiendadecalcos.dev",
-      "icon": [
-        "icons/icon.ico"
-      ]
+      "icon": ["icons/icon.ico"]
     },
     "security": {
-      "csp": "default-src 'self'; img-src 'self' data: https: asset: https://asset.localhost"
+      "csp": "default-src 'self'; img-src 'self' data: https: asset: https://asset.localhost; frame-src 'self' youtube.com www.youtube.com; style-src 'self' 'unsafe-inline';"
     },
     "windows": [
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "tauri-app",
+        "title": "Tienda de Calcos",
         "width": 1200,
         "height": 800
       }
