@@ -24,7 +24,7 @@
         "readDir": true,
         "readFile": true,
         "writeFile": true,
-        "scope": ["c:/tiendaimages", "c:/tiendaimages/cortar"]
+        "scope": ["**"]
       },
       "dialog": {
         "all": false,
