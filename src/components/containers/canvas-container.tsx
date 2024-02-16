@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { read, utils } from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { readDir } from "@tauri-apps/api/fs";
+import { BaseDirectory, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
+import { save } from "@tauri-apps/api/dialog";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "@/components/ui/slider";
 import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
@@ -16,21 +18,26 @@ export default function Clean() {
   const [canvases, setCanvases] = useState([]);
   const [currentCanvasIndex, setCurrentCanvasIndex] = useState(0);
 
+  const { toast } = useToast();
+
   useEffect(() => {
     setImages([]);
     //CARGA LAS IMAGENES DEL DIRECTORIO
-    readDir("C:\\tiendaimages", {
+
+    //readDir("Tienda de calcos 3.0\\Categorias", {
+    readDir("C:\\Tienda de calcos 3.0\\Categorias\\", {
       recursive: true,
     }).then((imgs) => {
       imgs.forEach((entry) => {
         Object.values(entry)[0].forEach((e: { name: string; path: string }) => {
-          e.name = e.path.split("\\")[2] + " " + e.path.split("\\")[3];
+          e.name = e.path.split("\\")[3] + " " + e.path.split("\\")[4];
           e.path = convertFileSrc(e.path);
           setImages((old) => [...old, e]);
         });
       });
     });
   }, []);
+
   //PIXELS POR CM
   const pixelXCm = 98;
 
@@ -43,7 +50,30 @@ export default function Clean() {
   //DOWNLOAD THE CANVAS IN PNG IMAGE
 
   function handleDownload() {
-    canvases.forEach((canvas) => {
+    canvases.forEach(async (canvas) => {
+      // try {
+      //   // Remove the data URL prefix (e.g., 'data:image/png;base64,')
+      //   const data = canvas.replace(/^data:image\/\w+;base64,/, "");
+
+      //   // Decode the base64 data into binary format
+      //   const binaryString = atob(data);
+
+      //   // Create a Uint8Array from the binary string
+      //   const length = binaryString.length;
+      //   const binaryArray = new Uint8Array(length);
+      //   for (let i = 0; i < length; i++) {
+      //     binaryArray[i] = binaryString.charCodeAt(i);
+      //   }
+      //   await writeBinaryFile('avatar.png',data, { dir: BaseDirectory.Download });
+      //   console.log(binaryArray);
+      // } catch (error) {
+      //   console.log(error);
+
+      //   toast({
+      //     title: "No se puedo guardar la imagen",
+      //     variant: "destructive",
+      //   });
+      // }
       const aDownloadLink = document.createElement("a");
       aDownloadLink.setAttribute("download", "true");
       aDownloadLink.download = `${new Date().toLocaleDateString("es-AR", {
@@ -60,10 +90,12 @@ export default function Clean() {
   }
 
   //GENERA EL CANVAS ACOMODODANDO LAS IMAGENES HORIZONTALMENTE HASTA Q NO HAY LUGAR Y BAJA VERTICALMENTE
-  async function handleGenerate(event: { preventDefault: () => void }) {
+  function handleGenerate(event: { preventDefault: () => void }) {
     event.preventDefault();
     setCanvases([]);
     setCurrentCanvasIndex(0);
+    //@ts-ignore
+    let arraycanvas = [];
 
     if (file) {
       try {
@@ -87,7 +119,7 @@ export default function Clean() {
         document.getElementById("tempcanvas")?.appendChild(newCanvas);
 
         //Red Border
-        ctx.lineWidth = 30;
+        ctx.lineWidth = 2;
         ctx.strokeStyle = "red";
         ctx.strokeRect(0, 0, ancho, alto);
 
@@ -104,6 +136,7 @@ export default function Clean() {
           const wsname = wb.SheetNames[0];
           const ws = wb.Sheets[wsname];
           const data = utils.sheet_to_json(ws);
+          
 
           //SEPARA POR ORDENES
           const groupedData = {};
@@ -119,6 +152,8 @@ export default function Clean() {
             groupedData[orden].push(item);
           });
 
+          console.log(groupedData)
+          
           let drawnCount = 0;
           const imgs: any = [];
           let pageCounter = 0;
@@ -167,17 +202,18 @@ export default function Clean() {
                       ctx.font = "bold 100px Arial";
                       pageCounter++;
                       ctx.fillText(`${pageCounter}`, ancho - 100, alto - 100);
-                      //@ts-ignore
-                      setCanvases((prevArray) => [
-                        ...prevArray,
-                        newCanvas.toDataURL("image/PNG"),
-                      ]);
+                      // //@ts-ignore
+                      // setCanvases((prevArray) => [
+                      //   ...prevArray,
+                      //   newCanvas.toDataURL(),
+                      // ]);
+                      arraycanvas.push(newCanvas.toDataURL());
                       currentX = 100;
                       currentY = 100;
                       ctx.reset();
 
                       //Red Border
-                      ctx.lineWidth = 30;
+                      ctx.lineWidth = 2;
                       ctx.strokeStyle = "red";
                       ctx.strokeRect(0, 0, ancho, alto);
                     }
@@ -226,20 +262,24 @@ export default function Clean() {
                         pageCounter++;
                         ctx.fillText(`${pageCounter}`, ancho - 100, alto - 100);
                       }
-                      ctx.lineWidth = 30;
+                      ctx.lineWidth = 2;
                       ctx.strokeStyle = "red";
                       ctx.strokeRect(0, 0, ancho, alto);
+                      arraycanvas.push(newCanvas.toDataURL());
+                      // //@ts-ignore
+                      // setCanvases((prevArray) => [
+                      //   ...prevArray,
+                      //   newCanvas.toDataURL(),
+                      // ]);
                       //@ts-ignore
-                      setCanvases((prevArray) => [
-                        ...prevArray,
-                        newCanvas.toDataURL("image/PNG"),
-                      ]);
-                      setTimeout(() => {
-                        document
-                          .getElementById("tempcanvas")
-                          ?.classList.add("hidden");
-                        document.getElementById("temp")?.remove();
-                      }, 2500);
+                      arraycanvas.forEach((element) => {
+                        //@ts-ignore
+                        setCanvases((prevArray) => [...prevArray, element]);
+                      });
+                      document
+                        .getElementById("tempcanvas")
+                        ?.classList.add("hidden");
+                      document.getElementById("temp")?.remove();
                     }
                   }
                 };
@@ -311,8 +351,11 @@ export default function Clean() {
             </Button>
           </div>
         </div>
-        <div className="flex flex-col items-center border h-2/3 w-[300px] justify-around border-black shadow-xl bg-gray-100">
-          <form className="w-2/3 flex flex-col gap-12" onSubmit={handleGenerate}>
+        <div className="flex flex-col items-center border h-2/3 w-[300px] justify-around border-black shadow-xl">
+          <form
+            className="w-2/3 flex flex-col gap-12"
+            onSubmit={handleGenerate}
+          >
             <label className="" htmlFor="orden">
               Orden de compra
             </label>
