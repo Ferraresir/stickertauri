@@ -105,7 +105,6 @@ export default function Clean() {
         //START POINT IN CANVAS
         let currentX = 100;
         let currentY = 100;
-        let client = 0;
 
         //CREATE CANVAS
         const newCanvas = document.createElement("canvas");
@@ -159,6 +158,8 @@ export default function Clean() {
           let pageCounter = 0;
 
           Object.values(groupedData).forEach((order) => {
+            console.log(order);
+            
             let fakeOrder = {
               "Cantidad (- reembolso)": 1,
               "Nombre del artículo": "utils findeorden",
@@ -166,7 +167,7 @@ export default function Clean() {
             //@ts-ignore
             order.push(fakeOrder);
             //@ts-ignore
-            order.forEach((i, eachidx) => {
+            order.forEach((i, eachidx) => {              
               for (let c = 0; c < i["Cantidad (- reembolso)"]; c++) {
                 let counter = 0;
                 const img = new Image();
@@ -217,9 +218,8 @@ export default function Clean() {
                       ctx.strokeStyle = "red";
                       ctx.strokeRect(0, 0, ancho, alto);
                     }
-
                     if (
-                      imgs[drawnCount].src.split("%5C")[3] === "findeorden.png"
+                      imgs[drawnCount].src.split("%5C")[4] === "findeorden.png"
                     ) {
                       ctx.save();
                       ctx.textAlign = "center";
@@ -228,6 +228,7 @@ export default function Clean() {
                       ctx.rotate(Math.PI / 0.66669);
                       ctx.fillStyle = "#1E1F1C";
                       ctx.font = "45px Bebas Neue";
+
                       //@ts-ignore
                       ctx.fillText(
                         //@ts-ignore
@@ -242,7 +243,6 @@ export default function Clean() {
                         335
                       );
                       ctx.restore();
-                      client += 1;
                     }
 
                     ctx.globalCompositeOperation = "destination-over";
