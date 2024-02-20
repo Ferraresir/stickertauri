@@ -135,7 +135,6 @@ export default function Clean() {
           const wsname = wb.SheetNames[0];
           const ws = wb.Sheets[wsname];
           const data = utils.sheet_to_json(ws);
-          
 
           //SEPARA POR ORDENES
           const groupedData = {};
@@ -151,15 +150,15 @@ export default function Clean() {
             groupedData[orden].push(item);
           });
 
-          console.log(groupedData)
-          
+          console.log(groupedData);
+
           let drawnCount = 0;
           const imgs: any = [];
           let pageCounter = 0;
 
           Object.values(groupedData).forEach((order) => {
             console.log(order);
-            
+
             let fakeOrder = {
               "Cantidad (- reembolso)": 1,
               "Nombre del artículo": "utils findeorden",
@@ -167,7 +166,7 @@ export default function Clean() {
             //@ts-ignore
             order.push(fakeOrder);
             //@ts-ignore
-            order.forEach((i, eachidx) => {              
+            order.forEach((i, eachidx) => {
               for (let c = 0; c < i["Cantidad (- reembolso)"]; c++) {
                 let counter = 0;
                 const img = new Image();
@@ -218,9 +217,7 @@ export default function Clean() {
                       ctx.strokeStyle = "red";
                       ctx.strokeRect(0, 0, ancho, alto);
                     }
-                    if (
-                      imgs[drawnCount].src.split("%5C")[4] === "findeorden.png"
-                    ) {
+                    if (imgs[drawnCount].src.endsWith("findeorden.png")) {
                       ctx.save();
                       ctx.textAlign = "center";
                       ctx.textBaseline = "middle";
