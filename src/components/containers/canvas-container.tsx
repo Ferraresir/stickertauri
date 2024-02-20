@@ -2,12 +2,10 @@ import { useEffect, useState } from "react";
 import { read, utils } from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BaseDirectory, readDir, writeBinaryFile } from "@tauri-apps/api/fs";
-import { save } from "@tauri-apps/api/dialog";
+import { readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "@/components/ui/slider";
 import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
-import { useToast } from "@/components/ui/use-toast";
 
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
@@ -15,10 +13,8 @@ export default function Clean() {
   const [padding, setPadding] = useState(49);
   const [file, setFile] = useState<File>();
   const [images, setImages] = useState<{ name: string; path: string }[]>([]);
-  const [canvases, setCanvases] = useState([]);
+  const [canvases, setCanvases] = useState<string[]>([]);
   const [currentCanvasIndex, setCurrentCanvasIndex] = useState(0);
-
-  const { toast } = useToast();
 
   useEffect(() => {
     setImages([]);
@@ -49,31 +45,40 @@ export default function Clean() {
 
   //DOWNLOAD THE CANVAS IN PNG IMAGE
 
-  function handleDownload() {
+  async function handleDownload() {
     canvases.forEach(async (canvas) => {
-      // try {
-      //   // Remove the data URL prefix (e.g., 'data:image/png;base64,')
+      // Remove the data URL prefix (e.g., 'data:image/png;base64,')
       //   const data = canvas.replace(/^data:image\/\w+;base64,/, "");
+      //   console.log("data " + data);
 
       //   // Decode the base64 data into binary format
       //   const binaryString = atob(data);
+      //   console.log("binary " + binaryString);
 
       //   // Create a Uint8Array from the binary string
       //   const length = binaryString.length;
-      //   const binaryArray = new Uint8Array(length);
+      //   const binaryArray = new Uint8Array(new arrayBuffer(length));
+      //   // const binaryArray = new Uint8Array(length);
       //   for (let i = 0; i < length; i++) {
       //     binaryArray[i] = binaryString.charCodeAt(i);
       //   }
-      //   await writeBinaryFile('avatar.png',data, { dir: BaseDirectory.Download });
-      //   console.log(binaryArray);
-      // } catch (error) {
-      //   console.log(error);
 
-      //   toast({
-      //     title: "No se puedo guardar la imagen",
-      //     variant: "destructive",
-      //   });
-      // }
+      //   console.log("array " + binaryArray);
+      //   await writeBinaryFile(
+      //     `${new Date().toLocaleDateString("es-AR", {
+      //       day: "2-digit",
+      //       month: "2-digit",
+      //       year: "numeric",
+      //       hour: "2-digit",
+      //       minute: "2-digit",
+      //       second: "2-digit",
+      //     })}.png`,
+      //     binaryArray,
+      //     {
+      //       dir: BaseDirectory.Download,
+      //     }
+      //   );
+      // });
       const aDownloadLink = document.createElement("a");
       aDownloadLink.setAttribute("download", "true");
       aDownloadLink.download = `${new Date().toLocaleDateString("es-AR", {
@@ -138,6 +143,7 @@ export default function Clean() {
 
           //SEPARA POR ORDENES
           const groupedData = {};
+          const clients: string[] = [];
           data.forEach((item) => {
             //@ts-ignore
             const orden = item["Número de pedido"];
@@ -149,16 +155,21 @@ export default function Clean() {
             //@ts-ignore
             groupedData[orden].push(item);
           });
-
-          console.log(groupedData);
+          Object.values(groupedData).forEach((element) => {
+            clients.push(
+              //@ts-ignore
+              `${element[0]["Nombre (facturación)"].toUpperCase()} ${element[0][
+                "Apellidos (facturación)"
+              ].toUpperCase()}`
+            );
+          });
 
           let drawnCount = 0;
           const imgs: any = [];
           let pageCounter = 0;
+          let clientCounter = 0;
 
           Object.values(groupedData).forEach((order) => {
-            console.log(order);
-
             let fakeOrder = {
               "Cantidad (- reembolso)": 1,
               "Nombre del artículo": "utils findeorden",
@@ -198,7 +209,7 @@ export default function Clean() {
 
                     //SI ALCANZA EL LIMITE VERTICAL GUARDA EL CANVAS Y CREA OTRO
                     if (currentY + desiredHeight + 100 > alto) {
-                      ctx.fillStyle = "white";
+                      ctx.fillStyle = "black";
                       ctx.font = "bold 100px Arial";
                       pageCounter++;
                       ctx.fillText(`${pageCounter}`, ancho - 100, alto - 100);
@@ -229,16 +240,12 @@ export default function Clean() {
                       //@ts-ignore
                       ctx.fillText(
                         //@ts-ignore
-                        `${order[0][
-                          "Nombre (facturación)"
-                          //@ts-ignore
-                        ].toUpperCase()} ${order[0][
-                          "Apellidos (facturación)"
-                        ].toUpperCase()}`,
+                        clients[clientCounter],
                         -400,
                         100,
                         335
                       );
+                      clientCounter += 1;
                       ctx.restore();
                     }
 
@@ -253,7 +260,7 @@ export default function Clean() {
                     currentX += scaledWidth + padding;
 
                     if (drawnCount === imgs.length) {
-                      ctx.fillStyle = "white";
+                      ctx.fillStyle = "black";
                       ctx.font = "bold 100px Arial";
                       if (pageCounter >= 1) {
                         pageCounter++;
