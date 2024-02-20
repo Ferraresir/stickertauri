@@ -6,6 +6,7 @@ import { readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "@/components/ui/slider";
 import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
+import { Progress } from "@/components/ui/progress";
 
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
@@ -15,6 +16,7 @@ export default function Clean() {
   const [images, setImages] = useState<{ name: string; path: string }[]>([]);
   const [canvases, setCanvases] = useState<string[]>([]);
   const [currentCanvasIndex, setCurrentCanvasIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     setImages([]);
@@ -46,52 +48,55 @@ export default function Clean() {
   //DOWNLOAD THE CANVAS IN PNG IMAGE
 
   async function handleDownload() {
-    canvases.forEach(async (canvas) => {
-      // Remove the data URL prefix (e.g., 'data:image/png;base64,')
-      //   const data = canvas.replace(/^data:image\/\w+;base64,/, "");
-      //   console.log("data " + data);
-
-      //   // Decode the base64 data into binary format
-      //   const binaryString = atob(data);
-      //   console.log("binary " + binaryString);
-
-      //   // Create a Uint8Array from the binary string
-      //   const length = binaryString.length;
-      //   const binaryArray = new Uint8Array(new arrayBuffer(length));
-      //   // const binaryArray = new Uint8Array(length);
-      //   for (let i = 0; i < length; i++) {
-      //     binaryArray[i] = binaryString.charCodeAt(i);
-      //   }
-
-      //   console.log("array " + binaryArray);
-      //   await writeBinaryFile(
-      //     `${new Date().toLocaleDateString("es-AR", {
-      //       day: "2-digit",
-      //       month: "2-digit",
-      //       year: "numeric",
-      //       hour: "2-digit",
-      //       minute: "2-digit",
-      //       second: "2-digit",
-      //     })}.png`,
-      //     binaryArray,
-      //     {
-      //       dir: BaseDirectory.Download,
-      //     }
-      //   );
-      // });
-      const aDownloadLink = document.createElement("a");
-      aDownloadLink.setAttribute("download", "true");
-      aDownloadLink.download = `${new Date().toLocaleDateString("es-AR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })}.png`;
-      aDownloadLink.href = canvas;
-      aDownloadLink.click();
-    });
+    try {
+      canvases.forEach(async (canvas, i) => {
+        // Remove the data URL prefix (e.g., 'data:image/png;base64,')
+        //   const data = canvas.replace(/^data:image\/\w+;base64,/, "");
+        //   console.log("data " + data);
+        //   // Decode the base64 data into binary format
+        //   const binaryString = atob(data);
+        //   console.log("binary " + binaryString);
+        //   // Create a Uint8Array from the binary string
+        //   const length = binaryString.length;
+        //   const binaryArray = new Uint8Array(new arrayBuffer(length));
+        //   // const binaryArray = new Uint8Array(length);
+        //   for (let i = 0; i < length; i++) {
+        //     binaryArray[i] = binaryString.charCodeAt(i);
+        //   }
+        //   console.log("array " + binaryArray);
+        //   await writeBinaryFile(
+        //     `${new Date().toLocaleDateString("es-AR", {
+        //       day: "2-digit",
+        //       month: "2-digit",
+        //       year: "numeric",
+        //       hour: "2-digit",
+        //       minute: "2-digit",
+        //       second: "2-digit",
+        //     })}.png`,
+        //     binaryArray,
+        //     {
+        //       dir: BaseDirectory.Download,
+        //     }
+        //   );
+        // });
+        const aDownloadLink = document.createElement("a");
+        aDownloadLink.setAttribute("download", "true");
+        aDownloadLink.download = `${new Date().toLocaleDateString("es-AR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })}.png`;
+        aDownloadLink.href = canvas;
+        aDownloadLink.click();
+        document.body.removeChild(aDownloadLink);
+        console.log(i);
+      });
+    } catch (error) {
+      alert("Error: " + error);
+    }
   }
 
   //GENERA EL CANVAS ACOMODODANDO LAS IMAGENES HORIZONTALMENTE HASTA Q NO HAY LUGAR Y BAJA VERTICALMENTE
