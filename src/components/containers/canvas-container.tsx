@@ -6,6 +6,7 @@ import { readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "@/components/ui/slider";
 import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
@@ -20,14 +21,14 @@ export default function Clean() {
     setImages([]);
     //CARGA LAS IMAGENES DEL DIRECTORIO
 
-    readDir("Tienda de calcos 3.0\\Categorias", {
-      //readDir("C:\\Tienda de calcos 3.0\\Categorias\\", {
+    //readDir("Tienda de calcos 3.0\\Categorias", {
+    readDir("C:\\Tienda de calcos 3.0\\Categorias\\", {
       recursive: true,
     }).then((imgs) => {
       imgs.forEach((entry) => {
         Object.values(entry)[0].forEach((e: { name: string; path: string }) => {
-          e.name = e.path.split("\\")[2] + " " + e.path.split("\\")[3];
-          //e.name = e.path.split("\\")[3] + " " + e.path.split("\\")[4];
+          //e.name = e.path.split("\\")[2] + " " + e.path.split("\\")[3];
+          e.name = e.path.split("\\")[3] + " " + e.path.split("\\")[4];
           e.path = convertFileSrc(e.path);
           setImages((old) => [...old, e]);
         });
@@ -48,51 +49,24 @@ export default function Clean() {
 
   async function handleDownload() {
     try {
-      canvases.forEach(async (canvas, i) => {
-        // Remove the data URL prefix (e.g., 'data:image/png;base64,')
-        //   const data = canvas.replace(/^data:image\/\w+;base64,/, "");
-        //   console.log("data " + data);
-        //   // Decode the base64 data into binary format
-        //   const binaryString = atob(data);
-        //   console.log("binary " + binaryString);
-        //   // Create a Uint8Array from the binary string
-        //   const length = binaryString.length;
-        //   const binaryArray = new Uint8Array(new arrayBuffer(length));
-        //   // const binaryArray = new Uint8Array(length);
-        //   for (let i = 0; i < length; i++) {
-        //     binaryArray[i] = binaryString.charCodeAt(i);
-        //   }
-        //   console.log("array " + binaryArray);
-        //   await writeBinaryFile(
-        //     `${new Date().toLocaleDateString("es-AR", {
-        //       day: "2-digit",
-        //       month: "2-digit",
-        //       year: "numeric",
-        //       hour: "2-digit",
-        //       minute: "2-digit",
-        //       second: "2-digit",
-        //     })}.png`,
-        //     binaryArray,
-        //     {
-        //       dir: BaseDirectory.Download,
-        //     }
-        //   );
-        // });
-        const aDownloadLink = document.createElement("a");
-        aDownloadLink.setAttribute("download", "true");
-        aDownloadLink.download = `${new Date().toLocaleDateString("es-AR", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        })}.png`;
-        aDownloadLink.href = canvas;
-        aDownloadLink.click();
-        document.body.removeChild(aDownloadLink);
-        console.log(i);
-      });
+      await invoke("save_images", { images: canvases, folder_path: "images" });
+      console.log("Imagen guardada con exito");
+      // canvases.forEach(async (canvas, i) => {
+      //   const aDownloadLink = document.createElement("a");
+      //   aDownloadLink.setAttribute("download", "true");
+      //   aDownloadLink.download = `${new Date().toLocaleDateString("es-AR", {
+      //     day: "2-digit",
+      //     month: "2-digit",
+      //     year: "numeric",
+      //     hour: "2-digit",
+      //     minute: "2-digit",
+      //     second: "2-digit",
+      //   })}.png`;
+      //   aDownloadLink.href = canvas;
+      //   aDownloadLink.click();
+      //   document.body.removeChild(aDownloadLink);
+      //   console.log(i);
+      // });
     } catch (error) {
       alert("Error: " + error);
     }
@@ -216,7 +190,7 @@ export default function Clean() {
                       ctx.fillStyle = "black";
                       ctx.font = "bold 100px Arial";
                       pageCounter++;
-                      ctx.fillText(`${pageCounter}`, ancho - 100, alto - 100);
+                      ctx.fillText(`${pageCounter}`, ancho - 150, alto - 150);
                       // //@ts-ignore
                       // setCanvases((prevArray) => [
                       //   ...prevArray,
@@ -268,7 +242,7 @@ export default function Clean() {
                       ctx.font = "bold 100px Arial";
                       if (pageCounter >= 1) {
                         pageCounter++;
-                        ctx.fillText(`${pageCounter}`, ancho - 100, alto - 100);
+                        ctx.fillText(`${pageCounter}`, ancho - 150, alto - 150);
                       }
                       ctx.lineWidth = 2;
                       ctx.strokeStyle = "red";
