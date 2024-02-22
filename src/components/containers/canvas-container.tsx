@@ -6,7 +6,6 @@ import { readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "@/components/ui/slider";
 import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
-import { Progress } from "@/components/ui/progress";
 
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
@@ -16,19 +15,19 @@ export default function Clean() {
   const [images, setImages] = useState<{ name: string; path: string }[]>([]);
   const [canvases, setCanvases] = useState<string[]>([]);
   const [currentCanvasIndex, setCurrentCanvasIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     setImages([]);
     //CARGA LAS IMAGENES DEL DIRECTORIO
 
-    //readDir("Tienda de calcos 3.0\\Categorias", {
-    readDir("C:\\Tienda de calcos 3.0\\Categorias\\", {
+    readDir("Tienda de calcos 3.0\\Categorias", {
+      //readDir("C:\\Tienda de calcos 3.0\\Categorias\\", {
       recursive: true,
     }).then((imgs) => {
       imgs.forEach((entry) => {
         Object.values(entry)[0].forEach((e: { name: string; path: string }) => {
-          e.name = e.path.split("\\")[3] + " " + e.path.split("\\")[4];
+          e.name = e.path.split("\\")[2] + " " + e.path.split("\\")[3];
+          //e.name = e.path.split("\\")[3] + " " + e.path.split("\\")[4];
           e.path = convertFileSrc(e.path);
           setImages((old) => [...old, e]);
         });
