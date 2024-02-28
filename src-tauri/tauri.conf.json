@@ -47,7 +47,7 @@
       "icon": ["icons/icon.ico"]
     },
     "security": {
-      "csp": "default-src 'self'; img-src 'self' data: https: asset: https://asset.localhost; frame-src 'self' youtube.com www.youtube.com; style-src 'self' 'unsafe-inline';"
+      "csp": "default-src 'self'; img-src 'self' blob blob: data: https: asset: https://asset.localhost; frame-src 'self' youtube.com www.youtube.com; style-src 'self' 'unsafe-inline';"
     },
     "windows": [
       {

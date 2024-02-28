@@ -6,7 +6,8 @@ import { readDir } from "@tauri-apps/api/fs";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { Slider } from "@/components/ui/slider";
 import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
-import { invoke } from "@tauri-apps/api/tauri";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
@@ -14,21 +15,23 @@ export default function Clean() {
   const [padding, setPadding] = useState(49);
   const [file, setFile] = useState<File>();
   const [images, setImages] = useState<{ name: string; path: string }[]>([]);
-  const [canvases, setCanvases] = useState<string[]>([]);
+  const [canvases, setCanvases] = useState<Blob[]>([]);
   const [currentCanvasIndex, setCurrentCanvasIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [border, setBorder] = useState(false);
 
   useEffect(() => {
     setImages([]);
     //CARGA LAS IMAGENES DEL DIRECTORIO
 
-    //readDir("Tienda de calcos 3.0\\Categorias", {
-    readDir("C:\\Tienda de calcos 3.0\\Categorias\\", {
+    readDir("Tienda de calcos 3.0\\Categorias", {
+      //readDir("C:\\Tienda de calcos 3.0\\Categorias\\", {
       recursive: true,
     }).then((imgs) => {
       imgs.forEach((entry) => {
         Object.values(entry)[0].forEach((e: { name: string; path: string }) => {
-          //e.name = e.path.split("\\")[2] + " " + e.path.split("\\")[3];
-          e.name = e.path.split("\\")[3] + " " + e.path.split("\\")[4];
+          e.name = e.path.split("\\")[2] + " " + e.path.split("\\")[3];
+          //e.name = e.path.split("\\")[3] + " " + e.path.split("\\")[4];
           e.path = convertFileSrc(e.path);
           setImages((old) => [...old, e]);
         });
@@ -43,30 +46,31 @@ export default function Clean() {
   async function handleClear() {
     setCanvases([]);
     setCurrentCanvasIndex(0);
+    setProgress(0);
   }
 
   //DOWNLOAD THE CANVAS IN PNG IMAGE
 
   async function handleDownload() {
     try {
-      await invoke("save_images", { images: canvases, folder_path: "images" });
-      console.log("Imagen guardada con exito");
-      // canvases.forEach(async (canvas, i) => {
-      //   const aDownloadLink = document.createElement("a");
-      //   aDownloadLink.setAttribute("download", "true");
-      //   aDownloadLink.download = `${new Date().toLocaleDateString("es-AR", {
-      //     day: "2-digit",
-      //     month: "2-digit",
-      //     year: "numeric",
-      //     hour: "2-digit",
-      //     minute: "2-digit",
-      //     second: "2-digit",
-      //   })}.png`;
-      //   aDownloadLink.href = canvas;
-      //   aDownloadLink.click();
-      //   document.body.removeChild(aDownloadLink);
-      //   console.log(i);
-      // });
+      canvases.forEach((canvas, ind) => {
+        setTimeout(() => {
+          const aDownloadLink = document.createElement("a");
+          aDownloadLink.href = URL.createObjectURL(canvas);
+          aDownloadLink.setAttribute(
+            "download",
+            `${new Date().toLocaleDateString("es-AR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}.png`
+          );
+          aDownloadLink.click();
+          aDownloadLink.remove();
+        }, ind * 300);
+      });
     } catch (error) {
       alert("Error: " + error);
     }
@@ -75,10 +79,10 @@ export default function Clean() {
   //GENERA EL CANVAS ACOMODODANDO LAS IMAGENES HORIZONTALMENTE HASTA Q NO HAY LUGAR Y BAJA VERTICALMENTE
   function handleGenerate(event: { preventDefault: () => void }) {
     event.preventDefault();
+    document.getElementById("generate")?.setAttribute("disabled", "true");
+    setProgress(0);
     setCanvases([]);
     setCurrentCanvasIndex(0);
-    //@ts-ignore
-    let arraycanvas = [];
 
     if (file) {
       try {
@@ -100,10 +104,12 @@ export default function Clean() {
         document.getElementById("tempcanvas")?.classList.remove("hidden");
         document.getElementById("tempcanvas")?.appendChild(newCanvas);
 
-        //Red Border
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(0, 0, ancho, alto);
+        if (border) {
+          // //Red Border
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = "red";
+          ctx.strokeRect(0, 0, ancho, alto);
+        }
 
         //LEER EXCEL
         const fileReader = new FileReader();
@@ -133,6 +139,7 @@ export default function Clean() {
             //@ts-ignore
             groupedData[orden].push(item);
           });
+
           Object.values(groupedData).forEach((element) => {
             clients.push(
               //@ts-ignore
@@ -190,21 +197,23 @@ export default function Clean() {
                       ctx.fillStyle = "black";
                       ctx.font = "bold 100px Arial";
                       pageCounter++;
-                      ctx.fillText(`${pageCounter}`, ancho - 150, alto - 150);
-                      // //@ts-ignore
-                      // setCanvases((prevArray) => [
-                      //   ...prevArray,
-                      //   newCanvas.toDataURL(),
-                      // ]);
-                      arraycanvas.push(newCanvas.toDataURL());
+                      ctx.fillText(`${pageCounter}`, ancho - 150, alto - 50);
+                      newCanvas.toBlob((b) => {
+                        //@ts-ignore
+                        setCanvases((prevArray) => [...prevArray, b]),
+                          "image/png",
+                          1;
+                      });
                       currentX = 100;
                       currentY = 100;
                       ctx.reset();
 
-                      //Red Border
-                      ctx.lineWidth = 2;
-                      ctx.strokeStyle = "red";
-                      ctx.strokeRect(0, 0, ancho, alto);
+                      if (border) {
+                        // //Red Border
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = "red";
+                        ctx.strokeRect(0, 0, ancho, alto);
+                      }
                     }
                     if (imgs[drawnCount].src.endsWith("findeorden.png")) {
                       ctx.save();
@@ -236,32 +245,37 @@ export default function Clean() {
                       desiredHeight
                     );
                     currentX += scaledWidth + padding;
+                    setProgress(Math.round((drawnCount * 100) / imgs.length));
 
                     if (drawnCount === imgs.length) {
                       ctx.fillStyle = "black";
                       ctx.font = "bold 100px Arial";
                       if (pageCounter >= 1) {
                         pageCounter++;
-                        ctx.fillText(`${pageCounter}`, ancho - 150, alto - 150);
+                        ctx.fillText(`${pageCounter}`, ancho - 150, alto - 50);
                       }
-                      ctx.lineWidth = 2;
-                      ctx.strokeStyle = "red";
-                      ctx.strokeRect(0, 0, ancho, alto);
-                      arraycanvas.push(newCanvas.toDataURL());
-                      // //@ts-ignore
-                      // setCanvases((prevArray) => [
-                      //   ...prevArray,
-                      //   newCanvas.toDataURL(),
-                      // ]);
-                      //@ts-ignore
-                      arraycanvas.forEach((element) => {
+                      if (border) {
+                        // //Red Border
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = "red";
+                        ctx.strokeRect(0, 0, ancho, alto);
+                      }
+                      newCanvas.toBlob((b) => {
                         //@ts-ignore
-                        setCanvases((prevArray) => [...prevArray, element]);
+                        setCanvases((prevArray) => [...prevArray, b]),
+                          "image/png",
+                          1;
                       });
                       document
                         .getElementById("tempcanvas")
                         ?.classList.add("hidden");
                       document.getElementById("temp")?.remove();
+                      setTimeout(() => {
+                        setProgress(0);
+                      }, 2000);
+                      document
+                        .getElementById("generate")
+                        ?.removeAttribute("disabled");
                     }
                   }
                 };
@@ -298,7 +312,10 @@ export default function Clean() {
             <div id="tempcanvas" className={`h-[500px] w-[500px] mb-6`}></div>
             {canvases.length >= 1 && (
               <div className="w-full h-full">
-                <img src={canvases[currentCanvasIndex]} alt="canvas" />
+                <img
+                  src={URL.createObjectURL(canvases[currentCanvasIndex])}
+                  alt="canvas"
+                />
                 <div className="flex items-center justify-center gap-2 mt-3 relative bottom-2">
                   <button onClick={handlePrevCanvas}>
                     <ThickArrowLeftIcon />
@@ -313,25 +330,32 @@ export default function Clean() {
               </div>
             )}
           </div>
-          <div className="flex flex-col w-1/2 mt-2 mx-auto gap-1">
-            <Button
-              className="border border-black mt-1 hover:bg-yellow-200"
-              onClick={() => {
-                handleDownload();
-              }}
-            >
-              Descargar Imagen
-            </Button>
-            <Button
-              variant="destructive"
-              className="border hover:bg-red-600"
-              onClick={() => {
-                handleClear();
-              }}
-            >
-              Limpiar canvas
-            </Button>
-          </div>
+          {progress > 0 && canvases.length === 0 ? (
+            <Alert className="w-2/3 h-24 text-center mx-auto flex flex-col items-center justify-center gap-2">
+              <AlertTitle>Generando...</AlertTitle>
+              <Progress value={progress} />
+            </Alert>
+          ) : (
+            <div className="flex flex-col w-1/2 mt-2 mx-auto gap-1">
+              <Button
+                className="border border-black mt-1 hover:bg-yellow-200"
+                onClick={() => {
+                  handleDownload();
+                }}
+              >
+                Descargar Imagen
+              </Button>
+              <Button
+                variant="destructive"
+                className="border hover:bg-red-600"
+                onClick={() => {
+                  handleClear();
+                }}
+              >
+                Limpiar canvas
+              </Button>
+            </div>
+          )}
         </div>
         <div className="flex flex-col items-center border h-2/3 w-[300px] justify-around border-black shadow-xl">
           <form
@@ -344,6 +368,7 @@ export default function Clean() {
             <Input
               type="file"
               id="orden"
+              accept=".xlsx"
               name="orden"
               className="cursor-pointer file:dark:text-white"
               //@ts-ignore
@@ -399,7 +424,7 @@ export default function Clean() {
                 />
               </div>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-4">
               <label className="" htmlFor="margen">
                 {`Margenes: ${Math.round((padding / pixelXCm) * 100) / 100} Cm`}
               </label>
@@ -424,7 +449,7 @@ export default function Clean() {
                   defaultValue={[padding / pixelXCm]}
                   max={3}
                   min={0}
-                  step={0.1}
+                  step={0.5}
                   onValueChange={(event: any[]) =>
                     setPadding(Number(event[0]) * pixelXCm)
                   }
@@ -432,7 +457,18 @@ export default function Clean() {
                 <p>3</p>
               </div>
             </div>
+            <div className="flex items-center justify-center gap-2 -my-8">
+              <Input
+                className="size-4"
+                type="checkbox"
+                onChange={(e) => {
+                  setBorder(e.target.checked);
+                }}
+              />
+              <p>Bordes</p>
+            </div>
             <Button
+              id="generate"
               className="shadow-sm border shadow-black hover:bg-yellow-200"
               variant="outline"
               type="submit"
