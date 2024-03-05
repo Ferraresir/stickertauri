@@ -9,6 +9,9 @@ import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 
+import { invoke } from "@tauri-apps/api/tauri";
+import { dialog } from "@tauri-apps/api/";
+
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
   const [alto, setAlto] = useState(9800);
@@ -41,6 +44,43 @@ export default function Clean() {
 
   //PIXELS POR CM
   const pixelXCm = 98;
+
+  // const generateCutFileData = async (canvas) => {
+  //   const ctx = canvas.getContext('2d')
+  //   const vectors = []
+
+  //   // Iterate over each image on the canvas
+  //   for (const image of images) {
+  //     const { x, y, width, height } = image.position // Get the position and dimensions of the image on the canvas
+  //     const imageData = ctx.getImageData(x, y, width, height)
+  //     const jimpImage = await Jimp.create(width, height, '#0000000000', imageData.data)
+  //     const edges = await jimpImage.gaussianEdgeDetection({ radius: 2, kernel: [1, 1] })
+
+  //     // Generate vectors from the edge data
+  //     const imageVectors = []
+  //     edges.scan(0, 0, edges.bitmap.width, edges.bitmap.height, (x, y, idx) => {
+  //       if (edges.bitmap.data[idx] !== 0) {
+  //         // Add the vector path for this edge pixel
+  //         imageVectors.push({ x, y })
+  //       }
+  //     })
+
+  //     // Add the vectors for this image to the overall vectors array
+  //     vectors.push({ position: image.position, vectors: imageVectors })
+  //   }
+
+  //   // Combine the vectors for all images into the cut file data format
+  //   let cutFileData = ''
+  //   for (const { position, vectors } of vectors) {
+  //     cutFileData += `POSITION ${position.x} ${position.y}\n`
+  //     for (const { x, y } of vectors) {
+  //       cutFileData += `${x} ${y}\n`
+  //     }
+  //     cutFileData += 'ENDPOSITION\n'
+  //   }
+
+  //   return cutFileData
+  // }
 
   //LIMPIA EL CANVAS
   async function handleClear() {
