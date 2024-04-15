@@ -9,9 +9,6 @@ import { ThickArrowLeftIcon, ThickArrowRightIcon } from "@radix-ui/react-icons";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 
-import { invoke } from "@tauri-apps/api/tauri";
-import { dialog } from "@tauri-apps/api/";
-
 export default function Clean() {
   const [ancho, setAncho] = useState(9800);
   const [alto, setAlto] = useState(9800);
@@ -28,20 +25,23 @@ export default function Clean() {
     //CARGA LAS IMAGENES DEL DIRECTORIO
 
     readDir("Tienda de calcos 3.0\\Categorias", {
-      //readDir("C:\\Tienda de calcos 3.0\\Categorias\\", {
+      //readDir("C:\\Tienda de calcos 3.0\\Categorias", {
       recursive: true,
     }).then((imgs) => {
       imgs.forEach((entry) => {
-        Object.values(entry)[0].forEach((e: { name: string; path: string }) => {
-          e.name = e.path.split("\\")[2] + " " + e.path.split("\\")[3];
-          //e.name = e.path.split("\\")[3] + " " + e.path.split("\\")[4];
-          e.path = convertFileSrc(e.path);
-          setImages((old) => [...old, e]);
-        });
+        //@ts-ignore
+        Object.values(entry.children).forEach(
+          //@ts-ignore
+          (e: { name: string; path: string }) => {
+            e.name = e.path.split("\\")[2] + " " + e.path.split("\\")[3];
+            //e.name = e.path.split("\\")[3] + " " + e.path.split("\\")[4];
+            e.path = convertFileSrc(e.path);
+            setImages((old) => [...old, e]);
+          }
+        );
       });
     });
   }, []);
-
   //PIXELS POR CM
   const pixelXCm = 98;
 
