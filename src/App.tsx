@@ -20,6 +20,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 
 //import CropContainer from "./components/containers/crop-container";
 import CanvasLayout from "./components/containers/canvas-container";
+import CropContainer from "./components/containers/crop-container";
 
 
 export default function App() {
@@ -33,10 +34,9 @@ export default function App() {
               <Link to="/">
                 <MenubarItem>Canvas</MenubarItem>
               </Link>
-              {/* <MenubarSeparator />
             <Link to="/crop">
               <MenubarItem>Crop</MenubarItem>
-            </Link> */}
+            </Link>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
@@ -73,7 +73,7 @@ export default function App() {
       </Dialog>
       <Routes>
         <Route path="/" element={<CanvasLayout />} />
-        {/* <Route path="/crop" element={<CropContainer />} /> */}
+        <Route path="/crop" element={<CropContainer />} />
       </Routes>
     </div>
   );
